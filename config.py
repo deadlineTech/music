@@ -11,7 +11,7 @@ API_ID = int(getenv("API_ID"))
 API_HASH = getenv("API_HASH")
 
 # Get your token from @BotFather on Telegram.
-BOT_TOKEN = getenv("BOT_TOKEN")
+BOT_TOKEN = getenv("8403256890:AAGrQXB_4eI_5hpeE8YEl_7XxGkzij5FNBk")
 
 #Get API_KEY from @DeadlineTechOwner or @DeadlineApiBot
 API_URL = getenv("API_URL", "https://deadlinetech.site")
@@ -26,7 +26,7 @@ DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 60))
 LOGGER_ID = int(getenv("LOGGER_ID", None))
 
 # Get this value from @Harry_RoxBot on Telegram by /id
-OWNER_ID = int(getenv("OWNER_ID", 6848223695))
+OWNER_ID = int(getenv("OWNER_ID", 8078574143))
 
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name

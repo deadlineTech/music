@@ -1,4 +1,8 @@
-# Music Bot by Team DeadlineTech
+# ==========================================================
+# 🔒 All Rights Reserved © Team DeadlineTech
+# 📁 This file is part of the DeadlineTech Project.
+# ==========================================================
+
 import asyncio
 import os
 import re
@@ -411,3 +415,4 @@ class YouTubeAPI:
             LOGGER.error(f"Download Exception: {e}")
 
         return None, None
+

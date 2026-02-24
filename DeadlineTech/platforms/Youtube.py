@@ -39,11 +39,11 @@ YOUTUBE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{11}$")
 CHUNK_SIZE = 1024 * 1024
 
 # Polling Settings (Like downloader.py)
-JOB_POLL_ATTEMPTS = 20     # How many times to check status
+JOB_POLL_ATTEMPTS = 10     # How many times to check status
 JOB_POLL_INTERVAL = 2.0    # Seconds between checks
 JOB_POLL_BACKOFF = 1.1     # Increase interval slightly each time
-HARD_TIMEOUT = 300         # 5 Minutes Max Total
-TG_FLOOD_COOLDOWN = 0.0
+HARD_TIMEOUT = 60         # 5 Minutes Max Total
+TG_FLOOD_COOLDOWN = 0.1
 
 # === Database Config ===
 MEDIA_CHANNEL_ID = getattr(config, "MEDIA_CHANNEL_ID", None)
@@ -494,3 +494,4 @@ class YouTubeAPI:
 
         _inc("failed")
         return None, None
+

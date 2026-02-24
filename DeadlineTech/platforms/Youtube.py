@@ -19,19 +19,10 @@ from pyrogram.types import Message
 from pyrogram.enums import MessageEntityType
 from pyrogram.errors import FloodWait
 
-# Search
 from youtubesearchpython.__future__ import VideosSearch
-
-# Project Imports
-try:
-    from DeadlineTech import app as TG_APP
-    from DeadlineTech.utils.database import is_on_off
-    from DeadlineTech.utils.formatters import time_to_seconds
-except ImportError:
-    from AnnieXMedia import app as TG_APP
-    from AnnieXMedia.utils.database import is_on_off
-    from AnnieXMedia.utils.formatters import time_to_seconds
-
+from DeadlineTech import app as TG_APP
+from DeadlineTech.utils.database import is_on_off
+from DeadlineTech.utils.formatters import time_to_seconds
 import config
 
 # === Configuration & Constants ===
@@ -494,5 +485,6 @@ class YouTubeAPI:
 
         _inc("failed")
         return None, None
+
 
 

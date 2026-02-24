@@ -43,11 +43,11 @@ JOB_POLL_ATTEMPTS = 10     # How many times to check status
 JOB_POLL_INTERVAL = 2.0    # Seconds between checks
 JOB_POLL_BACKOFF = 1.1     # Increase interval slightly each time
 HARD_TIMEOUT = 60         # 5 Minutes Max Total
-TG_FLOOD_COOLDOWN = 0.1
+TG_FLOOD_COOLDOWN = 0.0
 
 # === Database Config ===
-MEDIA_CHANNEL_ID = getattr(config, "MEDIA_CHANNEL_ID", None)
-DB_URI = getattr(config, "DB_URI", None)
+MEDIA_CHANNEL_ID = config.MEDIA_CHANNEL_ID
+DB_URI = config.DB_URI
 MEDIA_DB_NAME = getattr(config, "MEDIA_DB_NAME", "arcapi")
 MEDIA_COLLECTION_NAME = getattr(config, "MEDIA_COLLECTION_NAME", "medias")
 
@@ -494,4 +494,5 @@ class YouTubeAPI:
 
         _inc("failed")
         return None, None
+
 

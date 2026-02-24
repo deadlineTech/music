@@ -123,7 +123,6 @@ async def broadcast_command(client, message: Message):
                         try:
                             await content.copy(chat_id)
                         except Exception as e:
-                            LOG.warning(f"Copy failed to {chat_id}: {e}")
                             failed += 1
                             return
 
@@ -141,11 +140,9 @@ async def broadcast_command(client, message: Message):
                     failed += 1
 
                 except RPCError as e:
-                    LOG.warning(f"RPCError in chat {chat_id}: {e}")
                     failed += 1
 
                 except Exception as e:
-                    LOG.error(f"Error delivering to {chat_id}: {e}")
                     failed += 1
 
         # Combine all targets

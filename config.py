@@ -13,7 +13,7 @@ API_HASH = getenv("API_HASH")
 # Get your token from @BotFather on Telegram.
 BOT_TOKEN = getenv("BOT_TOKEN")
 
-#Get API_KEY from @DeadlineTechOwner or @DeadlineApiBot
+#Get API_KEY from deadlinetech.site or @smaugxd
 API_URL = getenv("API_URL", "https://api.deadlinetech.site")
 API_KEY = getenv("API_KEY")
 

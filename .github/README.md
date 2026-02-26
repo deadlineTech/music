@@ -47,7 +47,6 @@ Arc Music Bot
 > Just buy it once and enjoy the best streaming experience on your Telegram groups!
 
 - 🔗 [Buy API Key](https://deadlinetech.site)
-- 💬 [Get Your Free Trial Api Key](https://t.me/ApixhubBot)
 
 ---
 

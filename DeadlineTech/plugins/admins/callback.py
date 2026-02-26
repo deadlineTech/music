@@ -349,7 +349,7 @@ async def pl_save_callback(client, CallbackQuery):
         await CallbackQuery.answer("⚠️ This track is already in your folder!", show_alert=True)
     else:
         # Success: returns the name of the folder it was saved to
-        await CallbackQuery.answer(f"✅ Saved to folder: {status}", show_alert=True)
+        await CallbackQuery.answer(f"✅Track added to your playlist: {status}", show_alert=True)
 
 
 async def markup_timer():

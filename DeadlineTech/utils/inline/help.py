@@ -6,11 +6,12 @@ from DeadlineTech import app
 
 
 def help_pannel(_, START: Union[bool, int] = None):
-    first = [InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data=f"close")]
+    first = [InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data=f"close", style=enums.ButtonStyle.DANGER)]
     second = [
         InlineKeyboardButton(
             text=_["BACK_BUTTON"],
             callback_data=f"settingsback_helper",
+            style=enums.ButtonStyle.PRIMARY,
         ),
     ]
     mark = second if START else first

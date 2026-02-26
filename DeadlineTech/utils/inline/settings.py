@@ -66,6 +66,7 @@ def auth_users_markup(_, status: Union[bool, str] = None):
             InlineKeyboardButton(
                 text=_["BACK_BUTTON"],
                 callback_data="settings_helper",
+                style=enums.ButtonStyle.PRIMARY,
             ),
             InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close", style=enums.ButtonStyle.DANGER),
         ],
@@ -105,6 +106,7 @@ def playmode_users_markup(
             InlineKeyboardButton(
                 text=_["BACK_BUTTON"],
                 callback_data="settings_helper",
+                style=enums.ButtonStyle.PRIMARY,
             ),
             InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close"),
         ],

@@ -12,10 +12,8 @@ from DeadlineTech import LOGGER, app, userbot
 from DeadlineTech.core.call import Anony
 from DeadlineTech.misc import sudo
 from DeadlineTech.plugins import ALL_MODULES
-from DeadlineTech.utils.crash_reporter import setup_global_exception_handler  
 
 async def init():
-    setup_global_exception_handler()
 
     if (
         not config.STRING1

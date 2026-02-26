@@ -71,19 +71,20 @@ async def stream(
                     original_chat_id,
                     text=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{vidid}", title[:23], duration_min, user_name),
                     reply_markup=InlineKeyboardMarkup(button),
+                    disable_web_page_preview=True
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
         if count == 0:
             return
         else:
-            # We just upload the raw text to pastebin and send the link, no Carbon image needed!
             link = await AnonyBin(msg)
             upl = close_markup(_)
             return await app.send_message(
                 original_chat_id,
                 text=_["play_21"].format(position, link),
                 reply_markup=upl,
+                disable_web_page_preview=True
             )
             
     elif streamtype == "youtube":
@@ -107,6 +108,7 @@ async def stream(
                 chat_id=original_chat_id,
                 text=_["queue_4"].format(position, title[:27], duration_min, user_name),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
         else:
             if not forceplay:
@@ -121,6 +123,7 @@ async def stream(
                 original_chat_id,
                 text=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{vidid}", title[:23], duration_min, user_name),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"
@@ -141,6 +144,7 @@ async def stream(
                 chat_id=original_chat_id,
                 text=_["queue_4"].format(position, title[:27], duration_min, user_name),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
         else:
             if not forceplay:
@@ -156,6 +160,7 @@ async def stream(
                 original_chat_id,
                 text=_["stream_1"].format(link, title[:23], duration_min, user_name),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
@@ -176,6 +181,7 @@ async def stream(
                 chat_id=original_chat_id,
                 text=_["queue_4"].format(position, title[:27], duration_min, user_name),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
         else:
             if not forceplay:
@@ -192,9 +198,7 @@ async def stream(
                 original_chat_id,
                 text=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{vidid}", title[:23], duration_min, user_name),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
-            
-    elif streamtype == "index":
-        return await mystic.edit_text("This feature is temporarily disabled.")

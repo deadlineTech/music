@@ -18,7 +18,7 @@ from pytgcalls import PyTgCalls, exceptions, types
 from pytgcalls.pytgcalls_session import PyTgCallsSession
 
 import config
-from DeadlineTech import YouTube, app
+from DeadlineTech import LOGGER, YouTube, app
 from DeadlineTech.misc import db
 from DeadlineTech.utils.database import (
     add_active_chat,
@@ -36,7 +36,6 @@ from DeadlineTech.utils.exceptions import AssistantErr
 from DeadlineTech.utils.formatters import check_duration, seconds_to_min, speed_converter
 from DeadlineTech.utils.inline.play import stream_markup
 from DeadlineTech.utils.stream.autoclear import auto_clean
-from DeadlineTech.logging import LOGGER
 from strings import get_string
 
 autoend = {}
@@ -375,6 +374,7 @@ class Call(PyTgCalls):
                     user,
                 ),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
@@ -412,6 +412,7 @@ class Call(PyTgCalls):
                     user,
                 ),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"
@@ -430,6 +431,7 @@ class Call(PyTgCalls):
                 chat_id=original_chat_id,
                 text=_["stream_2"].format(user),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
@@ -445,23 +447,14 @@ class Call(PyTgCalls):
                 )
                 
             button = stream_markup(_, chat_id)
-            if videoid == "telegram":
+            if videoid == "telegram" or videoid == "soundcloud":
                 run = await app.send_message(
                     chat_id=original_chat_id,
                     text=_["stream_1"].format(
                         config.SUPPORT_CHAT, title[:23], check[0]["dur"], user
                     ),
                     reply_markup=InlineKeyboardMarkup(button),
-                )
-                db[chat_id][0]["mystic"] = run
-                db[chat_id][0]["markup"] = "tg"
-            elif videoid == "soundcloud":
-                run = await app.send_message(
-                    chat_id=original_chat_id,
-                    text=_["stream_1"].format(
-                        config.SUPPORT_CHAT, title[:23], check[0]["dur"], user
-                    ),
-                    reply_markup=InlineKeyboardMarkup(button),
+                    disable_web_page_preview=True
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "tg"
@@ -475,6 +468,7 @@ class Call(PyTgCalls):
                         user,
                     ),
                     reply_markup=InlineKeyboardMarkup(button),
+                    disable_web_page_preview=True
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"

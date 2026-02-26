@@ -11,6 +11,7 @@ import config
 from DeadlineTech import Spotify, Telegram, YouTube, app
 from DeadlineTech.core.call import Anony
 from DeadlineTech.utils import seconds_to_min, time_to_seconds
+from DeadlineTech.utils.database import get_user_playlists
 from DeadlineTech.utils.decorators.language import languageCB
 from DeadlineTech.utils.decorators.play import PlayWrapper
 from DeadlineTech.utils.formatters import formats
@@ -122,6 +123,8 @@ async def play_commnd(
                     details = await YouTube.playlist(url, config.PLAYLIST_FETCH_LIMIT, message.from_user.id)
                 except:
                     return await mystic.edit_text(_["play_3"])
+                if not details:
+                    return await mystic.edit_text(_["play_3"])
                 streamtype = "playlist"
                 plist_type = "yt"
                 if "&" in url:
@@ -133,6 +136,8 @@ async def play_commnd(
                 try:
                     details, track_id = await YouTube.track(url)
                 except:
+                    return await mystic.edit_text(_["play_3"])
+                if not details:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "youtube"
                 cap = _["play_10"].format(details["title"], details["duration_min"])
@@ -146,12 +151,16 @@ async def play_commnd(
                     details, track_id = await Spotify.track(url)
                 except:
                     return await mystic.edit_text(_["play_3"])
+                if not details:
+                    return await mystic.edit_text(_["play_3"])
                 streamtype = "youtube"
                 cap = _["play_10"].format(details["title"], details["duration_min"])
             elif "playlist" in url:
                 try:
                     details, plist_id = await Spotify.playlist(url)
                 except Exception:
+                    return await mystic.edit_text(_["play_3"])
+                if not details:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "playlist"
                 plist_type = "spplay"
@@ -161,6 +170,8 @@ async def play_commnd(
                     details, plist_id = await Spotify.album(url)
                 except:
                     return await mystic.edit_text(_["play_3"])
+                if not details:
+                    return await mystic.edit_text(_["play_3"])
                 streamtype = "playlist"
                 plist_type = "spalbum"
                 cap = _["play_11"].format(app.mention, message.from_user.mention)
@@ -168,6 +179,8 @@ async def play_commnd(
                 try:
                     details, plist_id = await Spotify.artist(url)
                 except:
+                    return await mystic.edit_text(_["play_3"])
+                if not details:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "playlist"
                 plist_type = "spartist"
@@ -195,14 +208,50 @@ async def play_commnd(
         if len(message.command) < 2:
             buttons = botplaylist_markup(_)
             return await mystic.edit_text(_["play_18"], reply_markup=InlineKeyboardMarkup(buttons))
-        slider = True
+        
         query = message.text.split(None, 1)[1]
         if "-v" in query:
-            query = query.replace("-v", "")
+            query = query.replace("-v", "").strip()
+
+        # ==========================================
+        # 🟢 PERSONAL PLAYLIST QUEUE SYSTEM
+        # Checks if the typed text matches a saved folder
+        # ==========================================
+        user_data = await get_user_playlists(user_id)
+        user_playlists = user_data.get("playlists", {})
+        
+        if query in user_playlists:
+            tracks = user_playlists[query]
+            if not tracks:
+                return await mystic.edit_text(f"❌ Your playlist **{query}** is empty.")
+            
+            # Extract videoids and convert them back to a list of YouTube URLs 
+            playlist_urls = [f"https://www.youtube.com/watch?v={t['videoid']}" for t in tracks]
+            
+            try:
+                await stream(
+                    _, mystic, user_id, playlist_urls, chat_id, user_name, 
+                    message.chat.id, video=video, streamtype="playlist", forceplay=fplay
+                )
+            except Exception as e:
+                ex_type = type(e).__name__
+                err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+                return await mystic.edit_text(err)
+            
+            await mystic.delete()
+            return await play_logs(message, streamtype=f"Personal Playlist: {query}")
+        # ==========================================
+            
+        slider = True
         try:
             details, track_id = await YouTube.track(query)
         except Exception as ex:
             return await mystic.edit_text(_["play_3"])
+            
+        # Add safeguard against NoneType returning from the scraper
+        if not details:
+            return await mystic.edit_text(_["play_3"])
+            
         streamtype = "youtube"
 
     if str(playmode) == "Direct":
@@ -228,7 +277,7 @@ async def play_commnd(
             lyrical[ran_hash] = plist_id
             buttons = playlist_markup(_, ran_hash, message.from_user.id, plist_type, "g", "f" if fplay else "d")
             await mystic.delete()
-            await message.reply_text(text=cap, reply_markup=InlineKeyboardMarkup(buttons))
+            await message.reply_text(text=cap, reply_markup=InlineKeyboardMarkup(buttons), disable_web_page_preview=True)
             return await play_logs(message, streamtype=f"Playlist : {plist_type}")
         else:
             if slider:
@@ -237,12 +286,13 @@ async def play_commnd(
                 await message.reply_text(
                     text=_["play_10"].format(details["title"].title(), details["duration_min"]),
                     reply_markup=InlineKeyboardMarkup(buttons),
+                    disable_web_page_preview=True
                 )
                 return await play_logs(message, streamtype=f"Searched on Youtube")
             else:
                 buttons = track_markup(_, track_id, message.from_user.id, "g", "f" if fplay else "d")
                 await mystic.delete()
-                await message.reply_text(text=cap, reply_markup=InlineKeyboardMarkup(buttons))
+                await message.reply_text(text=cap, reply_markup=InlineKeyboardMarkup(buttons), disable_web_page_preview=True)
                 return await play_logs(message, streamtype=f"URL Searched Inline")
 
 
@@ -269,6 +319,10 @@ async def play_music(client, CallbackQuery, _):
         details, track_id = await YouTube.track(vidid, True)
     except:
         return await mystic.edit_text(_["play_3"])
+        
+    if not details:
+        return await mystic.edit_text(_["play_3"])
+        
     if details["duration_min"]:
         duration_sec = time_to_seconds(details["duration_min"])
         if duration_sec > config.DURATION_LIMIT:
@@ -344,6 +398,9 @@ async def play_playlists_command(client, CallbackQuery, _):
         except:
             return await mystic.edit_text(_["play_3"])
 
+    if not result:
+        return await mystic.edit_text(_["play_3"])
+
     try:
         await stream(_, mystic, user_id, result, CallbackQuery.message.chat.id, user_name, CallbackQuery.message.chat.id, video, streamtype="playlist", spotify=spotify, forceplay=ffplay)
     except Exception as e:
@@ -374,7 +431,12 @@ async def slider_queries(client, CallbackQuery, _):
     except:
         pass
         
-    title, duration_min, thumbnail, vidid = await YouTube.slider(query, query_type)
+    try:
+        title, duration_min, thumbnail, vidid = await YouTube.slider(query, query_type)
+    except:
+        # Fallback if slider search totally fails
+        return await CallbackQuery.edit_message_text(_["play_3"])
+        
     buttons = slider_markup(_, vidid, user_id, query, query_type, "g", fplay)
     
     return await CallbackQuery.edit_message_text(

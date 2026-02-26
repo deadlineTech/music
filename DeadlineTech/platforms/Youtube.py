@@ -2,7 +2,6 @@ import asyncio
 import os
 import re
 import uuid
-import random
 import aiohttp
 import aiofiles
 import yt_dlp
@@ -49,23 +48,6 @@ NO_CANDIDATE_WAIT = 4
 CDN_RETRIES = 5
 CDN_RETRY_DELAY = 2
 
-# === Statistics System ===
-DOWNLOAD_STATS: Dict[str, int] = {
-    "total": 0, "success": 0, "failed": 0,
-    "api_hit": 0, "timeout_fail": 0,
-    "no_candidate": 0, "cdn_fail": 0,
-    "security_blocked": 0
-}
-
-def _inc(key: str):
-    DOWNLOAD_STATS[key] = DOWNLOAD_STATS.get(key, 0) + 1
-
-def get_stats() -> Dict[str, Any]:
-    s = DOWNLOAD_STATS.copy()
-    total = s["total"]
-    s["success_rate"] = f"{(s['success'] / total) * 100:.2f}%" if total > 0 else "0.00%"
-    return s
-
 # === Security Helpers ===
 
 def is_safe_url(text: str) -> bool:
@@ -106,12 +88,15 @@ def extract_safe_id(link: str) -> Optional[str]:
     return None
 
 def cookie_txt_file():
-    cookie_dir = f"{os.getcwd()}/cookies"
-    if not os.path.exists(cookie_dir): return None
-    files = [f for f in os.listdir(cookie_dir) if f.endswith(".txt")]
-    return os.path.join(cookie_dir, random.choice(files)) if files else None
+    """Returns the hardcoded path to cookies/cookies.txt"""
+    cookie_path = os.path.join(os.getcwd(), "cookies", "cookies.txt")
+    if os.path.exists(cookie_path):
+        return cookie_path
+    
+    LOGGER(__name__).error(f"Cookie file not found at: {cookie_path}")
+    return None
 
-# === API Logic ===
+# === API Logic (Audio Only) ===
 
 _session: Optional[aiohttp.ClientSession] = None
 _session_lock = asyncio.Lock()
@@ -189,7 +174,6 @@ async def _download_cdn(url: str, out_path: str) -> bool:
                 return True
 
         except asyncio.TimeoutError:
-            _inc("timeout_fail")
             if attempt < CDN_RETRIES: await asyncio.sleep(CDN_RETRY_DELAY)
         except Exception as e:
             LOGGER(__name__).error(f"CDN Fail: {e}")
@@ -198,7 +182,7 @@ async def _download_cdn(url: str, out_path: str) -> bool:
     return False
 
 async def v2_download_process(link: str, video: bool) -> Optional[str]:
-    # Fixed UUID bug: Fallback to raw link if extract_safe_id fails
+    # This is primarily kept for AUDIO downloads as requested
     vid = extract_safe_id(link) or link 
     file_id = extract_safe_id(link) or uuid.uuid4().hex[:10]
     
@@ -220,7 +204,7 @@ async def v2_download_process(link: str, video: bool) -> Optional[str]:
             url = f"{api_url.rstrip('/')}/youtube/v2/download"
             params = {"query": vid, "isVideo": str(video).lower(), "api_key": api_key}
             
-            LOGGER(__name__).info(f"📡 V2 Job Start (Cycle {cycle}): {vid}...")
+            LOGGER(__name__).info(f"📡 API Job Start (Cycle {cycle}): {vid}...")
             async with session.get(url, params=params) as resp:
                 if resp.status != 200:
                     if cycle < V2_DOWNLOAD_CYCLES: await asyncio.sleep(1); continue
@@ -261,7 +245,6 @@ async def v2_download_process(link: str, video: bool) -> Optional[str]:
                     interval *= JOB_POLL_BACKOFF
             
             if not candidate:
-                _inc("no_candidate")
                 if cycle < V2_DOWNLOAD_CYCLES: await asyncio.sleep(NO_CANDIDATE_WAIT); continue
                 return None
 
@@ -272,12 +255,51 @@ async def v2_download_process(link: str, video: bool) -> Optional[str]:
 
             if await _download_cdn(final_url, str(out_path)):
                 return str(out_path)
-            else:
-                _inc("cdn_fail")
         
         except Exception as e:
-            LOGGER(__name__).error(f"V2 Cycle Error: {e}")
+            LOGGER(__name__).error(f"API Cycle Error: {e}")
             if cycle < V2_DOWNLOAD_CYCLES: await asyncio.sleep(1)
+    
+    return None
+
+# === YT-DLP Video Downloader System ===
+
+def _run_ytdlp(link: str, out_path: str, cookie_file: str, format_id: str = None):
+    # Synchronous function mapped into a thread pool
+    ydl_opts = {
+        'format': format_id if format_id else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        'outtmpl': out_path,
+        'cookiefile': cookie_file,
+        'quiet': True,
+        'no_warnings': True,
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([link])
+    return True
+
+async def yt_dlp_download_video(link: str, format_id: str = None) -> Optional[str]:
+    vid = extract_safe_id(link) or uuid.uuid4().hex[:10]
+    out_dir = Path("downloads/video")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"{vid}.mp4"
+    
+    if out_path.exists() and out_path.stat().st_size > 0:
+        return str(out_path)
+
+    cookie_file = cookie_txt_file()
+    if not cookie_file:
+        LOGGER(__name__).error("No cookie file found for yt-dlp video download.")
+        return None
+
+    try:
+        LOGGER(__name__).info(f"Downloading VIDEO via yt-dlp: {vid} (Cookies: {os.path.basename(cookie_file)})")
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, _run_ytdlp, link, str(out_path), cookie_file, format_id)
+        
+        if out_path.exists() and out_path.stat().st_size > 0:
+            return str(out_path)
+    except Exception as e:
+        LOGGER(__name__).error(f"yt-dlp Video Download Failed (Skipping): {e}")
     
     return None
 
@@ -348,7 +370,8 @@ class YouTubeAPI:
         if videoid: link = self.base + link
         if not is_safe_url(link): return 0, "Unsafe URL"
         
-        path = await v2_download_process(link, video=True)
+        # Route specifically to yt-dlp cookie downloader for videos
+        path = await yt_dlp_download_video(link)
         if path: return 1, path
         
         return 0, "Download Failed"
@@ -436,20 +459,20 @@ class YouTubeAPI:
         format_id: Union[bool, str] = None,
         title: Union[bool, str] = None,
     ) -> Tuple[Optional[str], Optional[bool]]:
-        _inc("total")
         if videoid: link = self.base + link
         
         if not is_safe_url(link):
-            _inc("security_blocked")
             return None, None
 
         is_vid = True if (video or songvideo) else False
         
-        path = await v2_download_process(link, video=is_vid)
+        # Audio vs Video Request Routing
+        if is_vid:
+            path = await yt_dlp_download_video(link, format_id=format_id)
+        else:
+            path = await v2_download_process(link, video=False)
+
         if path:
-            _inc("success")
-            _inc("api_hit")
             return path, True
 
-        _inc("failed")
         return None, None

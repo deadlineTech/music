@@ -25,7 +25,7 @@ from DeadlineTech.utils.formatters import alpha_to_int
 from config import adminlist
 
 # --- Configuration & Constants ---
-from ..logging import LOGGER
+from DeadlineTech.logging import LOGGER
 LOG = LOGGER(__name__)
 
 SEMAPHORE = asyncio.Semaphore(30)  # Increased concurrency
@@ -194,3 +194,4 @@ async def auto_clean():
             LOG.warning(f"AutoClean error: {e}")
 #auto clean task
 asyncio.create_task(auto_clean())
+

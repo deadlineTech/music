@@ -12,9 +12,7 @@ from DeadlineTech import LOGGER, app, userbot
 from DeadlineTech.core.call import Anony
 from DeadlineTech.misc import sudo
 from DeadlineTech.plugins import ALL_MODULES
-from DeadlineTech.utils.database import get_banned_users, get_gbanned
 from DeadlineTech.utils.crash_reporter import setup_global_exception_handler  
-from config import BANNED_USERS
 
 async def init():
     setup_global_exception_handler()
@@ -29,27 +27,21 @@ async def init():
         LOGGER(__name__).error("Assistant client variables not defined, exiting...")
         exit()
     await sudo()
-    try:
-        users = await get_gbanned()
-        for user_id in users:
-            BANNED_USERS.add(user_id)
-        users = await get_banned_users()
-        for user_id in users:
-            BANNED_USERS.add(user_id)
-    except:
-        pass
+    
     await app.start()
 
+    # Updated commands list: Removed clone/music, added playlist commands
     await app.set_bot_commands([
         BotCommand("start", "Sᴛᴀʀᴛ's Tʜᴇ Bᴏᴛ"),
-        BotCommand("clone", "start your own bot now"), 
         BotCommand("ping", "Cʜᴇᴄᴋ ɪғ ʙᴏᴛ ɪs ᴀʟɪᴠᴇ"),
         BotCommand("help", "Gᴇᴛ Cᴏᴍᴍᴀɴᴅs Lɪsᴛ"),
-        BotCommand("music", "download the songs 🎵"), 
         BotCommand("play", "Pʟᴀʏ Mᴜsɪᴄ ɪɴ Vᴄ"),
         BotCommand("vplay", "starts Streaming the requested Video Song"), 
         BotCommand("playforce", "forces to play your requested song"), 
         BotCommand("vplayforce", "forces to play your requested Video song"), 
+        BotCommand("playlist", "Manage your personal saved playlists"), 
+        BotCommand("playlists", "View all your saved folders"), 
+        BotCommand("del_playlist", "Delete a saved playlist"), 
         BotCommand("pause", "pause the current playing stream"), 
         BotCommand("resume", "resume the paused stream"), 
         BotCommand("skip", "skip the current playing stream"), 
@@ -63,7 +55,8 @@ async def init():
         BotCommand("seek", "seek the stream to the given duration"), 
         BotCommand("seekback", "backward seek the stream"), 
         BotCommand("speed", "for adjusting the audio playback speed"), 
-        BotCommand("loop", "enables the loop for the given value")
+        BotCommand("loop", "enables the loop for the given value"),
+        BotCommand("reboot", "Reboot bot for individual chat")
     ])
 
     for all_module in ALL_MODULES:

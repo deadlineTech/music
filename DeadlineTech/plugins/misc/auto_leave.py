@@ -8,7 +8,7 @@ from pyrogram.errors import FloodWait
 
 import config
 from DeadlineTech.utils.database import get_client, is_active_chat
-from ..logging import LOGGER
+from DeadlineTech.logging import LOGGER
 
 # --- Configuration & Constants ---
 LOG = LOGGER(__name__)

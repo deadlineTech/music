@@ -1,4 +1,5 @@
-from pyrogram.types import InlineKeyboardButton, WebAppInfo
+From pyrogram import enums
+from pyrogram.types import InlineKeyboardButton
 import config
 from DeadlineTech import app
 
@@ -26,7 +27,8 @@ def private_panel(_):
         [
             InlineKeyboardButton(
                 text=_["S_B_3"],
-                url=f"https://t.me/{app.username}?startgroup=true"
+                url=f"https://t.me/{app.username}?startgroup=true",
+                style=enums.ButtonStyle.PRIMARY
             )
         ],
         [

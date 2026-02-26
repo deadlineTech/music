@@ -22,7 +22,6 @@ from youtubesearchpython.__future__ import VideosSearch
 from DeadlineTech import app as TG_APP
 from DeadlineTech.core.dir import DOWNLOAD_DIR
 import config
-from Deadline
 
 # === Configuration & Constants ===
 API_KEY = config.API_KEY
@@ -411,3 +410,4 @@ class YouTubeAPI:
             LOGGER.error(f"Download Exception: {e}")
 
         return None, None
+

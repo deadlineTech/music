@@ -1,4 +1,7 @@
-# DeadlineTech/utils/decorators/play.py
+# ==========================================================
+# 🔒 All Rights Reserved © Team DeadlineTech
+# 📁 This file is part of the DeadlineTech Project.
+# ==========================================================
 
 import asyncio
 import logging
@@ -26,10 +29,14 @@ from DeadlineTech.utils.database import (
     is_maintenance,
 )
 from DeadlineTech.utils.inline import botplaylist_markup
-from config import SUPPORT_CHAT, adminlist
+from config import PLAYLIST_IMG_URL, SUPPORT_CHAT, adminlist
 from strings import get_string
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] - %(message)s',
+)
 
 links = {}
 
@@ -53,10 +60,9 @@ def PlayWrapper(command):
                     disable_web_page_preview=True
                 )
 
-            # SILENCED MESSAGE DELETION ERROR
             try:
                 await message.delete()
-            except Exception:
+            except Exception as e:
                 pass
 
             audio = (message.reply_to_message.audio or message.reply_to_message.voice) if message.reply_to_message else None
@@ -72,11 +78,10 @@ def PlayWrapper(command):
                         reply_markup=InlineKeyboardMarkup(botplaylist_markup(_)),
                     )
 
-            # REMOVED CHANNEL CHECK
             chat_id = message.chat.id
-
             playmode = await get_playmode(message.chat.id)
             playty = await get_playtype(message.chat.id)
+            
             if playty != "Everyone" and message.from_user.id not in SUDOERS:
                 admins = adminlist.get(message.chat.id)
                 if not admins or message.from_user.id not in admins:
@@ -88,7 +93,15 @@ def PlayWrapper(command):
             )
             fplay = True if message.command[0][-1] == "e" else None
 
-            # CHECK ASSISTANT MEMBERSHIP
+            try:
+                bot_member = await app.get_chat_member(chat_id, (await app.get_me()).id)
+                if bot_member.status != ChatMemberStatus.ADMINISTRATOR:
+                    return await message.reply_text("❌ Please promote the bot to admin to use music features.")
+            except UserNotParticipant:
+                pass # Ignore if the bot isn't recognized as a participant yet
+            except Exception as e:
+                logger.warning(f"Couldn't check bot admin status: {e}")
+
             if not await is_active_chat(chat_id):
                 userbot = await get_assistant(chat_id)
                 try:
@@ -97,10 +110,15 @@ def PlayWrapper(command):
                         return await message.reply_text(
                             _["call_2"].format(app.mention, userbot.id, userbot.name, userbot.username)
                         )
-                except ChatAdminRequired:
-                    pass
+                except (ChatAdminRequired, UserNotParticipant):
+                    pass # Handled by the join logic below
+                
+                try:
+                    await app.get_chat_member(chat_id, userbot.id)
                 except UserNotParticipant:
+                    logger.info(f"Assistant not in chat: {chat_id}")
                     invite_link = links.get(chat_id)
+
                     if not invite_link:
                         if message.chat.username:
                             invite_link = message.chat.username
@@ -110,7 +128,9 @@ def PlayWrapper(command):
                             except ChatAdminRequired:
                                 return await message.reply_text(_["call_1"])
                             except Exception as e:
-                                return await message.reply_text(_["call_3"].format(app.mention, type(e).__name__))
+                                return await message.reply_text(
+                                    _["call_3"].format(app.mention, type(e).__name__)
+                                )
 
                     if invite_link.startswith("https://t.me/+"):
                         invite_link = invite_link.replace("https://t.me/+", "https://t.me/joinchat/")
@@ -129,15 +149,24 @@ def PlayWrapper(command):
                     except UserAlreadyParticipant:
                         pass
                     except ChannelsTooMuch:
-                        return await message.reply_text("🚫 Assistant has joined too many chats.")
+                        return await message.reply_text("🚫 Assistant has joined too many chats. Run /cleanassistants.")
                     except ChatAdminRequired:
                         return await message.reply_text(_["call_1"])
                     except RPCError as e:
                         return await message.reply_text(f"🚫 <b>RPC Error:</b> <code>{type(e).__name__}</code>")
-                except Exception:
-                    pass
 
-            return await command(client, message, _, chat_id, is_video, playmode, url, fplay)
+            logger.info(f"▶️ A Song is played by {message.from_user.id} in {chat_id}")
+
+            return await command(
+                client,
+                message,
+                _,
+                chat_id,
+                is_video,
+                playmode,
+                url,
+                fplay,
+            )
 
         except Exception as ex:
             logger.exception(f"Unhandled exception in PlayWrapper: {ex}")

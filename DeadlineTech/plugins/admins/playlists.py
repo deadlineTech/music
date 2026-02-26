@@ -23,7 +23,7 @@ async def manage_playlists(client, message: Message):
     active = data["active"]
     
     if not playlists:
-        return await message.reply_text("❌ You don't have any playlists. Click '❤️ Save' on a playing song to start!")
+        return await message.reply_text("❌ You don't have any playlists. Click ➕ on a playing song to start!")
         
     buttons = []
     for name in playlists.keys():
@@ -37,7 +37,7 @@ async def manage_playlists(client, message: Message):
     buttons.append([InlineKeyboardButton(text="🗑 Close", callback_data="close")])
         
     await message.reply_text(
-        f"**📚 Your Library:**\nClick a folder to view songs or edit details. Folders with ⭐ are 'Active'.",
+        f"<b>📚 Your Library:</b>\nClick a folder to view songs or edit details. Folders with ⭐ are 'Active'.",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
@@ -49,7 +49,7 @@ async def del_playlist_cmd(client, message: Message):
     name = message.text.split(None, 1)[1].strip()
     deleted = await delete_user_playlist(message.from_user.id, name)
     if deleted:
-        await message.reply_text(f"✅ Playlist '{name}' deleted.")
+        await message.reply_text(f"✅ Playlist <code>{name}</code> deleted.")
     else:
         await message.reply_text("❌ Playlist not found.")
 
@@ -68,12 +68,12 @@ async def pl_view_cb(client, CallbackQuery):
         return await CallbackQuery.answer("❌ Folder not found.", show_alert=True)
     
     songs = playlists[name]
-    text = f"**📁 Folder: {name}**\n\n"
+    text = f"<b>📁 Folder: {name}</b>\n\n"
     if not songs:
         text += "_This folder is empty._"
     else:
         for i, song in enumerate(songs, 1):
-            text += f"**{i}.** {song['title'][:45]}\n"
+            text += f"<b>{i}.</b> {song['title'][:45]}\n"
             
     buttons = [
         [InlineKeyboardButton(text="✏️ Remove Tracks", callback_data=f"pl_edit|{name}")],
@@ -89,7 +89,7 @@ async def pl_edit_cb(client, CallbackQuery):
     data = await get_user_playlists(CallbackQuery.from_user.id)
     songs = data["playlists"].get(name, [])
     
-    text = f"**🛠 Editing: {name}**\nSelect a track number to remove it:\n\n"
+    text = f"<b>🛠 Editing: {name}</b>\nSelect a track number to remove it:\n\n"
     buttons = []
     row = []
     for i, _ in enumerate(songs, 1):

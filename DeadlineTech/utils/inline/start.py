@@ -1,4 +1,4 @@
-From pyrogram import enums
+from pyrogram import enums
 from pyrogram.types import InlineKeyboardButton
 import config
 from DeadlineTech import app

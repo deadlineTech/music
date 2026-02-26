@@ -11,7 +11,7 @@ from DeadlineTech.utils.database import (
 )
 from config import BANNED_USERS
 
-@app.on_message(filters.command(["playlists", "playlist"]) & ~BANNED_USERS)
+@app.on_message(filters.command(["playlists", "playlist"]) & filters.private & ~BANNED_USERS)
 async def manage_playlists(client, message: Message):
     user_id = message.from_user.id
     data = await get_user_playlists(user_id)
@@ -43,7 +43,7 @@ async def manage_playlists(client, message: Message):
 
     await message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
 
-@app.on_message(filters.command("del_playlist") & ~BANNED_USERS)
+@app.on_message(filters.command("del_playlist") & filters.private & ~BANNED_USERS)
 async def del_playlist_cmd(client, message: Message):
     if message.chat.type != ChatType.PRIVATE:
         return await message.reply_text("⚠️ Please use this command in my Private Chat to delete folders.")

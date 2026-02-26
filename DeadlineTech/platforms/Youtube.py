@@ -13,8 +13,8 @@ from typing import Dict, Optional, Any
 from urllib.parse import urlparse, unquote
 from aiohttp import TCPConnector
 
-from AnnieXMedia.core.dir import DOWNLOAD_DIR
-from AnnieXMedia.logging import LOGGER as _LOGGER
+from DeadlineTech.core.dir import DOWNLOAD_DIR
+from DeadlineTech.logging import LOGGER as _LOGGER
 from config import API_KEY, API_URL
 
 LOGGER = _LOGGER(__name__)
@@ -402,3 +402,4 @@ async def media_download(link: str, type: str, title: str = "", video_id: str = 
         _inc("failed")
         LOGGER.error(f"⌛ TIMEOUT | >{HARD_TIMEOUT}s | {clean_title}")
         return None
+

@@ -25,6 +25,7 @@ playtypedb = mongodb.playtypedb
 skipdb = mongodb.skipmode
 sudoersdb = mongodb.sudoers
 usersdb = mongodb.tgusersdb
+playlistdb = mongodb.playlists
 
 # Shifting to memory [mongo sucks often]
 active = []
@@ -666,3 +667,90 @@ async def remove_banned_user(user_id: int):
     if not is_gbanned:
         return
     return await blockeddb.delete_one({"user_id": user_id})
+
+# --- Advanced Playlist Logic ---
+
+async def get_user_playlists(user_id: int) -> dict:
+    """Fetch user's saved playlists and the name of their active folder."""
+    user_data = await playlistdb.find_one({"user_id": user_id})
+    if not user_data:
+        return {"playlists": {}, "active": None}
+    return {
+        "playlists": user_data.get("playlists", {}),
+        "active": user_data.get("active_playlist")
+    }
+
+async def set_active_playlist(user_id: int, name: str) -> bool:
+    """Designates a specific folder as 'Active' for one-click saving."""
+    await playlistdb.update_one(
+        {"user_id": user_id}, 
+        {"$set": {"active_playlist": name}}, 
+        upsert=True
+    )
+    return True
+
+async def add_to_active_playlist(user_id: int, videoid: str, title: str) -> str:
+    """Adds a track to the active folder. Auto-creates a default folder if none exist."""
+    data = await get_user_playlists(user_id)
+    playlists = data["playlists"]
+    active = data["active"]
+
+    # Logic: If no folders exist, create default 'MusicXXXX' and set as active
+    if not playlists:
+        active = f"Music{random.randint(1000, 9999)}"
+        playlists[active] = []
+        await set_active_playlist(user_id, active)
+    
+    # If folders exist but none are active, pick the first one
+    if not active:
+        active = list(playlists.keys())[0]
+        await set_active_playlist(user_id, active)
+
+    if len(playlists[active]) >= 25:
+        return "limit"
+        
+    if any(song["videoid"] == videoid for song in playlists[active]):
+        return "exists"
+        
+    playlists[active].append({"videoid": videoid, "title": title})
+    await playlistdb.update_one(
+        {"user_id": user_id}, 
+        {"$set": {"playlists": playlists}}, 
+        upsert=True
+    )
+    return active
+
+async def create_new_playlist(user_id: int, name: str) -> str:
+    """Creates a new playlist folder."""
+    data = await get_user_playlists(user_id)
+    playlists = data["playlists"]
+    if len(playlists) >= 5:
+        return "limit"
+    if name in playlists:
+        return "exists"
+    playlists[name] = []
+    await playlistdb.update_one({"user_id": user_id}, {"$set": {"playlists": playlists}}, upsert=True)
+    return "success"
+
+async def delete_user_playlist(user_id: int, name: str) -> bool:
+    """Deletes an entire playlist folder."""
+    data = await get_user_playlists(user_id)
+    playlists = data["playlists"]
+    if name in playlists:
+        del playlists[name]
+        update_payload = {"playlists": playlists}
+        if data["active"] == name:
+            update_payload["active_playlist"] = None
+        await playlistdb.update_one({"user_id": user_id}, {"$set": update_payload}, upsert=True)
+        return True
+    return False
+
+async def remove_track_by_index(user_id: int, name: str, index: int):
+    """Removes a specific song from a folder by its position."""
+    data = await get_user_playlists(user_id)
+    playlists = data["playlists"]
+    if name in playlists and index < len(playlists[name]):
+        playlists[name].pop(index)
+        await playlistdb.update_one({"user_id": user_id}, {"$set": {"playlists": playlists}}, upsert=True)
+        return True
+    return False

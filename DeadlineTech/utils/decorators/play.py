@@ -161,7 +161,7 @@ def PlayWrapper(command):
             )
 
         except Exception as ex:
-            logger.exception(f"Unhandled exception in PlayWrapper: {ex}")
+            LOGGER(__name__).exception(f"Unhandled exception in PlayWrapper: {ex}")
             try:
                 await message.reply_text(
                     f"🚫 <b>Unexpected Error:</b>\n<pre>{str(ex)}</pre>",

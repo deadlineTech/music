@@ -18,7 +18,7 @@ from pytgcalls import PyTgCalls, exceptions, types
 from pytgcalls.pytgcalls_session import PyTgCallsSession
 
 import config
-from DeadlineTech import LOGGER, YouTube, app
+from DeadlineTech import YouTube, app
 from DeadlineTech.misc import db
 from DeadlineTech.utils.database import (
     add_active_chat,
@@ -36,6 +36,7 @@ from DeadlineTech.utils.exceptions import AssistantErr
 from DeadlineTech.utils.formatters import check_duration, seconds_to_min, speed_converter
 from DeadlineTech.utils.inline.play import stream_markup
 from DeadlineTech.utils.stream.autoclear import auto_clean
+from DeadlineTech.logging import LOGGER
 from strings import get_string
 
 autoend = {}

@@ -13,14 +13,12 @@ from DeadlineTech.core.call import Anony
 from DeadlineTech.misc import sudo
 from DeadlineTech.plugins import ALL_MODULES
 from DeadlineTech.utils.database import get_banned_users, get_gbanned
-from DeadlineTech.utils.crash_reporter import setup_global_exception_handler  # ✅ Import crash handler
+from DeadlineTech.utils.crash_reporter import setup_global_exception_handler  
 from config import BANNED_USERS
 
 async def init():
-    # ✅ Enable global crash handler
     setup_global_exception_handler()
 
-  
     if (
         not config.STRING1
         and not config.STRING2
@@ -61,9 +59,6 @@ async def init():
         BotCommand("auth", "add a user to auth list"), 
         BotCommand("unauth", "remove a user from the auth list"), 
         BotCommand("authusers", "shows the list of the auth users"), 
-        BotCommand("cplay", "starts streaming the requested audio on channel"), 
-        BotCommand("cvplay", "Starts Streaming the video track on channel"), 
-        BotCommand("channelplay", "connect channel to a group and start streaming"), 
         BotCommand("shuffle", "shuffle's the queue"), 
         BotCommand("seek", "seek the stream to the given duration"), 
         BotCommand("seekback", "backward seek the stream"), 
@@ -71,7 +66,6 @@ async def init():
         BotCommand("loop", "enables the loop for the given value")
     ])
 
-    
     for all_module in ALL_MODULES:
         importlib.import_module("DeadlineTech.plugins" + all_module)
     LOGGER("DeadlineTech.plugins").info("Successfully Imported Modules...")
@@ -81,7 +75,7 @@ async def init():
         await Anony.stream_call("https://te.legra.ph/file/29f784eb49d230ab62e9e.mp4")
     except NoActiveGroupCall:
         LOGGER("DeadlineTech").error(
-            "Please turn on the videochat of your log group\channel.\n\nStopping Bot..."
+            "Please turn on the videochat of your log group\\channel.\n\nStopping Bot..."
         )
         exit()
     except:
@@ -94,7 +88,6 @@ async def init():
     await app.stop()
     await userbot.stop()
     LOGGER("DeadlineTech").info("Stopping DeadlineTech Music Bot...")
-
 
 if __name__ == "__main__":
     asyncio.get_event_loop().run_until_complete(init())

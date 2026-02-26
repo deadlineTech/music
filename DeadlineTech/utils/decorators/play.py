@@ -29,14 +29,9 @@ from DeadlineTech.utils.database import (
     is_maintenance,
 )
 from DeadlineTech.utils.inline import botplaylist_markup
+from DeadlineTech.logging import LOGGER
 from config import PLAYLIST_IMG_URL, SUPPORT_CHAT, adminlist
 from strings import get_string
-
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] [%(levelname)s] - %(message)s',
-)
 
 links = {}
 
@@ -50,7 +45,7 @@ def PlayWrapper(command):
                 return await message.reply_text(
                     _["general_3"],
                     reply_markup=InlineKeyboardMarkup(
-                        [[InlineKeyboardButton(text="ʕᵒˡ ᴛʏ ꟾɪʏ ?", callback_data="AnonymousAdmin")]]
+                        [[InlineKeyboardButton(text="Anonymous ?", callback_data="AnonymousAdmin")]]
                     )
                 )
 
@@ -100,7 +95,7 @@ def PlayWrapper(command):
             except UserNotParticipant:
                 pass # Ignore if the bot isn't recognized as a participant yet
             except Exception as e:
-                logger.warning(f"Couldn't check bot admin status: {e}")
+                LOGGER(__name__).warning(f"Couldn't check bot admin status: {e}")
 
             if not await is_active_chat(chat_id):
                 userbot = await get_assistant(chat_id)
@@ -116,7 +111,6 @@ def PlayWrapper(command):
                 try:
                     await app.get_chat_member(chat_id, userbot.id)
                 except UserNotParticipant:
-                    logger.info(f"Assistant not in chat: {chat_id}")
                     invite_link = links.get(chat_id)
 
                     if not invite_link:
@@ -149,13 +143,11 @@ def PlayWrapper(command):
                     except UserAlreadyParticipant:
                         pass
                     except ChannelsTooMuch:
-                        return await message.reply_text("🚫 Assistant has joined too many chats. Run /cleanassistants.")
+                        return await message.reply_text("🚫 Assistant has joined too many chats.")
                     except ChatAdminRequired:
                         return await message.reply_text(_["call_1"])
                     except RPCError as e:
                         return await message.reply_text(f"🚫 <b>RPC Error:</b> <code>{type(e).__name__}</code>")
-
-            logger.info(f"▶️ A Song is played by {message.from_user.id} in {chat_id}")
 
             return await command(
                 client,

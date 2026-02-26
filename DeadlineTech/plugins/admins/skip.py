@@ -90,6 +90,7 @@ async def skip(cli, message: Message, _, chat_id):
                 return await Anony.stop_stream(chat_id)
             except:
                 return
+                
     queued = check[0]["file"]
     title = (check[0]["title"]).title()
     user = check[0]["by"]
@@ -121,6 +122,7 @@ async def skip(cli, message: Message, _, chat_id):
                 user,
             ),
             reply_markup=InlineKeyboardMarkup(button),
+            disable_web_page_preview=True
         )
         db[chat_id][0]["mystic"] = run
         db[chat_id][0]["markup"] = "tg"
@@ -149,6 +151,7 @@ async def skip(cli, message: Message, _, chat_id):
                 user,
             ),
             reply_markup=InlineKeyboardMarkup(button),
+            disable_web_page_preview=True
         )
         db[chat_id][0]["mystic"] = run
         db[chat_id][0]["markup"] = "stream"
@@ -163,6 +166,7 @@ async def skip(cli, message: Message, _, chat_id):
         run = await message.reply_text(
             text=_["stream_2"].format(user),
             reply_markup=InlineKeyboardMarkup(button),
+            disable_web_page_preview=True
         )
         db[chat_id][0]["mystic"] = run
         db[chat_id][0]["markup"] = "tg"
@@ -180,6 +184,7 @@ async def skip(cli, message: Message, _, chat_id):
                     config.SUPPORT_CHAT, title[:23], check[0]["dur"], user
                 ),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
@@ -192,6 +197,7 @@ async def skip(cli, message: Message, _, chat_id):
                     user,
                 ),
                 reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"

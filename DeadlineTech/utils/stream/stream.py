@@ -1,11 +1,9 @@
-import os
-from random import randint
 from typing import Union
 
 from pyrogram.types import InlineKeyboardMarkup
 
 import config
-from DeadlineTech import Carbon, YouTube, app
+from DeadlineTech import YouTube, app
 from DeadlineTech.core.call import Anony
 from DeadlineTech.misc import db
 from DeadlineTech.utils.database import add_active_video_chat, is_active_chat
@@ -79,10 +77,8 @@ async def stream(
         if count == 0:
             return
         else:
+            # We just upload the raw text to pastebin and send the link, no Carbon image needed!
             link = await AnonyBin(msg)
-            lines = msg.count("\n")
-            car = os.linesep.join(msg.split(os.linesep)[:17]) if lines >= 17 else msg
-            carbon = await Carbon.generate(car, randint(100, 10000000))
             upl = close_markup(_)
             return await app.send_message(
                 original_chat_id,

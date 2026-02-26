@@ -122,7 +122,7 @@ def cookie_txt_file():
     files = [f for f in os.listdir(cookie_dir) if f.endswith(".txt")]
     return os.path.join(cookie_dir, random.choice(files)) if files else None
 
-# === API Logic (Synced with downloader.py) ===
+# === API Logic ===
 
 _session: Optional[aiohttp.ClientSession] = None
 _session_lock = asyncio.Lock()

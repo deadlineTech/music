@@ -19,6 +19,7 @@ from DeadlineTech.utils.database import (
     music_off,
     music_on,
     set_loop,
+    add_to_active_playlist,
 )
 from DeadlineTech.utils.decorators.language import languageCB
 from DeadlineTech.utils.formatters import seconds_to_min
@@ -324,6 +325,31 @@ async def del_back_playlist(client, CallbackQuery, _):
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
             await CallbackQuery.edit_message_text(txt, reply_markup=close_markup(_))
+
+@app.on_callback_query(filters.regex(r"^pl_save\|") & ~BANNED_USERS)
+async def pl_save_callback(client, CallbackQuery):
+    # Get the group chat ID from the button data
+    chat_id = int(CallbackQuery.data.split("|")[1])
+    
+    # Check if a track is actually playing in that group
+    playing = db.get(chat_id)
+    if not playing:
+        return await CallbackQuery.answer("❌ Nothing is currently playing.", show_alert=True)
+        
+    videoid = playing[0]["vidid"]
+    title = playing[0]["title"]
+    user_id = CallbackQuery.from_user.id
+
+    # Automatically handle folder creation and saving to the user's active folder
+    status = await add_to_active_playlist(user_id, videoid, title)
+    
+    if status == "limit":
+        await CallbackQuery.answer("⚠️ This folder is full! (Max 25 songs).", show_alert=True)
+    elif status == "exists":
+        await CallbackQuery.answer("⚠️ This track is already in your folder!", show_alert=True)
+    else:
+        # Success: returns the name of the folder it was saved to
+        await CallbackQuery.answer(f"✅ Saved to folder: {status}", show_alert=True)
 
 
 async def markup_timer():

@@ -59,14 +59,14 @@ async def init():
 
     for all_module in ALL_MODULES:
         importlib.import_module("DeadlineTech.plugins" + all_module)
-    LOGGER("DeadlineTech.plugins").info("Successfully Imported Modules...")
+    LOGGER("DeadlineTech.plugins").info("Plugins Imported Successfully...")
     await userbot.start()
     await Anony.start()
     try:
         await Anony.stream_call("https://te.legra.ph/file/29f784eb49d230ab62e9e.mp4")
     except NoActiveGroupCall:
         LOGGER("DeadlineTech").error(
-            "Please turn on the videochat of your log group\\channel.\n\nStopping Bot..."
+            "turn on the videochat of your log group."
         )
         exit()
     except:

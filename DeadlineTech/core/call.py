@@ -337,7 +337,19 @@ class Call(PyTgCalls):
             if not check:
                 LOGGER(__name__).info(f"Queue empty. Leaving voice call in chat: {chat_id}")
                 await _clear_(chat_id)
-                return await client.leave_call(chat_id, close=False)
+                await client.leave_call(chat_id, close=False)
+                
+                # 🟢 NEW: Send a nice message when the queue is completely empty
+                try:
+                    await app.send_message(
+                        chat_id=popped["chat_id"],
+                        text="No more songs in queue. Use /play to continue listening.",
+                        disable_web_page_preview=True
+                    )
+                except Exception as e:
+                    LOGGER(__name__).warning(f"Could not send queue empty message in {chat_id}: {e}")
+                
+                return
         except Exception as e:
             LOGGER(__name__).error(f"Error managing queue during track change in {chat_id}: {e}")
             try:
@@ -371,19 +383,16 @@ class Call(PyTgCalls):
             n, link = await YouTube.video(videoid, True)
             if n == 0:
                 LOGGER(__name__).warning(f"Failed to extract live video URL for {videoid} in {chat_id}")
-                return await app.send_message(
-                    original_chat_id,
-                    text=_["call_6"],
-                )
+                await app.send_message(original_chat_id, text=_["call_6"])
+                return await self.change_stream(client, chat_id)
+                
             stream = self._build_stream(link, video=video)
             try:
                 await self._play_on_assistant(client, chat_id, stream)
             except Exception as e:
                 LOGGER(__name__).error(f"Playback error for live track in {chat_id}: {e}")
-                return await app.send_message(
-                    original_chat_id,
-                    text=_["call_6"],
-                )
+                await app.send_message(original_chat_id, text=_["call_6"])
+                return await self.change_stream(client, chat_id)
             
             button = stream_markup(_, chat_id)
             run = await app.send_message(
@@ -411,20 +420,22 @@ class Call(PyTgCalls):
                 )
             except Exception as e:
                 LOGGER(__name__).error(f"Download failed for video {videoid} in {chat_id}: {e}")
-                return await mystic.edit_text(
-                    _["call_6"], disable_web_page_preview=True
-                )
+                await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
+                return await self.change_stream(client, chat_id)
+                
+            if not file_path:
+                LOGGER(__name__).error(f"Download returned None for {videoid} in {chat_id}")
+                await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
+                return await self.change_stream(client, chat_id)
+                
             stream = self._build_stream(file_path, video=video)
             try:
                 await self._play_on_assistant(client, chat_id, stream)
             except Exception as e:
                 LOGGER(__name__).error(f"Playback error for downloaded track in {chat_id}: {e}")
-                return await app.send_message(
-                    original_chat_id,
-                    text=_["call_6"],
-                )
+                await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
+                return await self.change_stream(client, chat_id)
             
-            # Using send_photo here as per your snippet requirements
             from DeadlineTech.utils.thumbnails import gen_thumb
             try:
                 img = await gen_thumb(videoid)
@@ -466,10 +477,9 @@ class Call(PyTgCalls):
                 await self._play_on_assistant(client, chat_id, stream)
             except Exception as e:
                 LOGGER(__name__).error(f"Playback error for index track in {chat_id}: {e}")
-                return await app.send_message(
-                    original_chat_id,
-                    text=_["call_6"],
-                )
+                await app.send_message(original_chat_id, text=_["call_6"])
+                return await self.change_stream(client, chat_id)
+                
             button = stream_markup(_, chat_id)
             run = await app.send_message(
                 chat_id=original_chat_id,
@@ -486,10 +496,8 @@ class Call(PyTgCalls):
                 await self._play_on_assistant(client, chat_id, stream)
             except Exception as e:
                 LOGGER(__name__).error(f"Playback error for direct track in {chat_id}: {e}")
-                return await app.send_message(
-                    original_chat_id,
-                    text=_["call_6"],
-                )
+                await app.send_message(original_chat_id, text=_["call_6"])
+                return await self.change_stream(client, chat_id)
                 
             button = stream_markup(_, chat_id)
             if videoid == "telegram" or videoid == "soundcloud":

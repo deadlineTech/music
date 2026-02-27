@@ -1,12 +1,9 @@
-
-
 # ==========================================================
 # 🎧 Public Open-Source VC Player Music Bot (Cookies Based)
 # 🛠️ Maintained by Team Arc | Lead Developer: @Its_damiann
 # 🔓 Licensed for Public Use — All Rights Reserved © Team Arc
 # ❤️ Openly built for the community, but proudly protected by the passion of its creators.
 # ==========================================================
-
 
 
 from pyrogram import Client
@@ -98,7 +95,7 @@ class Userbot(Client):
         LOGGER(__name__).info("Clients Started Successfully.")
 
     async def stop(self):
-        LOGGER(__name__).info("🛑 Shutting down assistant clients...")
+        LOGGER(__name__).info("Shutting down assistant clients...")
         try:
             if config.STRING1:
                 await self.one.stop()

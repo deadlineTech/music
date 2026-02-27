@@ -1,26 +1,9 @@
-
-
 # ==========================================================
 # 🎧 Public Open-Source VC Player Music Bot (Cookies Based)
 # 🛠️ Maintained by Team DeadlineTech | Lead Developer: @Its_damiann
 # 🔓 Licensed for Public Use — All Rights Reserved © Team DeadlineTech
-#
-# This file is part of a publicly available and open-source Telegram music bot
-# developed by Team DeadlineTech. It offers high-quality streaming in Telegram voice
-# chats using YouTube as a source, supported by session-based assistant accounts and
-# YouTube cookie integration for improved access and performance.
-#
-# 💡 This source code is released for educational and community purposes. You're free
-# to study, modify, and deploy it under fair and respectful usage. However, any misuse,
-# removal of credits, or false ownership claims will be considered a violation of our
-# community standards and may lead to denial of support or blacklisting.
-#
-# 🔗 Looking for powerful performance with stable APIs? Get access to the official
-# premium API service: https://DeadlineTech.site
-#
 # ❤️ Openly built for the community, but proudly protected by the passion of its creators.
 # ==========================================================
-
 
 import uvloop
 uvloop.install()
@@ -32,10 +15,9 @@ from pyrogram.enums import ChatMemberStatus, ParseMode
 import config
 from ..logging import LOGGER
 
-
-class Anony(Client):
+class Music(Client):
     def __init__(self):
-        LOGGER(__name__).info("🛠️ Initializing DeadlineTech Bot...")
+        LOGGER(__name__).info("Initializing DeadlineTech Bot...")
         super().__init__(
             name="DeadlineTech",
             api_id=config.API_ID,
@@ -58,10 +40,7 @@ class Anony(Client):
             await self.send_message(
                 chat_id=config.LOGGER_ID,
                 text=(
-                    f"<b>✅ Bot Started Successfully!</b>\n\n"
-                    f"<b>Name:</b> {self.name}\n"
-                    f"<b>Username:</b> @{self.username}\n"
-                    f"<b>User ID:</b> <code>{self.id}</code>"
+                    f"Bot Started Successfully!"
                 ),
             )
         except (errors.ChannelInvalid, errors.PeerIdInvalid):
@@ -89,7 +68,7 @@ class Anony(Client):
             )
             exit()
 
-        LOGGER(__name__).info(f"🎶 Bot is online and ready as {self.name} (@{self.username})")
+        LOGGER(__name__).info(f"Bot is online (@{self.username})")
 
     async def stop(self):
         LOGGER(__name__).info("🛑 Stopping DeadlineTech Bot...")

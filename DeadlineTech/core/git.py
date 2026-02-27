@@ -5,8 +5,6 @@
 # ❤️ Openly built for the community, but proudly protected by the passion of its creators.
 # ==========================================================
 
-
-
 import asyncio
 import shlex
 from typing import Tuple

@@ -4,20 +4,6 @@
 # 🎧 Public Open-Source VC Player Music Bot (Cookies Based)
 # 🛠️ Maintained by Team Arc | Lead Developer: @Its_damiann
 # 🔓 Licensed for Public Use — All Rights Reserved © Team Arc
-#
-# This file is part of a publicly available and open-source Telegram music bot
-# developed by Team DeadlineTech. It offers high-quality streaming in Telegram voice
-# chats using YouTube as a source, supported by session-based assistant accounts and
-# YouTube cookie integration for improved access and performance.
-#
-# 💡 This source code is released for educational and community purposes. You're free
-# to study, modify, and deploy it under fair and respectful usage. However, any misuse,
-# removal of credits, or false ownership claims will be considered a violation of our
-# community standards and may lead to denial of support or blacklisting.
-#
-# 🔗 Looking for powerful performance with stable APIs? Get access to the official
-# premium API service: https://DeadlineTech.site or Visit @ApixhubBot
-#
 # ❤️ Openly built for the community, but proudly protected by the passion of its creators.
 # ==========================================================
 
@@ -70,7 +56,7 @@ class Userbot(Client):
         )
 
     async def start(self):
-        LOGGER(__name__).info("🚀 Starting assistant clients...")
+        LOGGER(__name__).info("Starting assistant clients...")
 
         async def setup_assistant(client, number):
             try:
@@ -83,7 +69,7 @@ class Userbot(Client):
             assistants.append(number)
 
             try:
-                await client.send_message(config.LOGGER_ID, f"✅ Assistant {number} is now online.")
+                await client.send_message(config.LOGGER_ID, f"Userbot Started.")
             except Exception:
                 LOGGER(__name__).error(
                     f"❌ Assistant {number} failed to send a message to the log group. "
@@ -96,7 +82,7 @@ class Userbot(Client):
             client.username = client.me.username
             assistantids.append(client.id)
 
-            LOGGER(__name__).info(f"🤖 Assistant {number} is active as {client.name}")
+            LOGGER(__name__).info(f"🤖 Assistant {number} is active")
 
         if config.STRING1:
             await setup_assistant(self.one, 1)
@@ -109,7 +95,7 @@ class Userbot(Client):
         if config.STRING5:
             await setup_assistant(self.five, 5)
 
-        LOGGER(__name__).info("✅ All available assistants are now online.")
+        LOGGER(__name__).info("Clients Started Successfully.")
 
     async def stop(self):
         LOGGER(__name__).info("🛑 Shutting down assistant clients...")

@@ -45,7 +45,6 @@ async def stream(
                 continue
             if duration_sec > config.DURATION_LIMIT:
                 continue
-                
             if await is_active_chat(chat_id):
                 await put_queue(
                     chat_id, original_chat_id, f"vid_{vidid}", title, duration_min, user_name, vidid, user_id, "video" if video else "audio"
@@ -61,12 +60,9 @@ async def stream(
                 try:
                     file_path, direct = await YouTube.download(vidid, mystic, video=status, videoid=True)
                 except:
-                    # 🟢 FIX: If the 1st song of the Personal Playlist fails to download, 
-                    # DON'T crash the playlist! Just skip it and try the next song!
-                    continue
-                    
+                    raise AssistantErr(_["play_14"])
                 if not file_path:
-                    continue # 🟢 FIX: Skip broken 1st song and try the next!
+                    raise AssistantErr(_["play_14"])
                     
                 await Anony.join_call(chat_id, original_chat_id, file_path, video=status)
                 await put_queue(
@@ -83,20 +79,14 @@ async def stream(
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
                 count += 1
-                
         if count == 0:
-            # If literally EVERY song in the personal playlist failed to download
-            try:
-                await mystic.edit_text(_["play_14"])
-            except:
-                pass
             return
         else:
             link = await AnonyBin(msg)
             upl = close_markup(_)
             return await app.send_message(
                 original_chat_id,
-                text=_["play_21"].format(count, link),
+                text=_["play_21"].format(position, link),
                 reply_markup=upl,
                 disable_web_page_preview=True
             )

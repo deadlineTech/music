@@ -41,7 +41,7 @@ XCB = [
 def dbb():
     global db
     db = {}
-    LOGGER(__name__).info(f"🧺 Local database initialized successfully.")
+    LOGGER(__name__).info(f"Local DB Created Successfully")
 
 
 async def sudo():
@@ -60,8 +60,6 @@ async def sudo():
     if sudoers:
         for user_id in sudoers:
             SUDOERS.add(user_id)
-    LOGGER(__name__).info(f"💾 Sudoers have been set")
-
 
 def heroku():
     global HAPP

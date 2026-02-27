@@ -24,13 +24,12 @@ from DeadlineTech.utils.inline import (
 )
 from DeadlineTech.utils.logger import play_logs
 from DeadlineTech.utils.stream.stream import stream
-from config import BANNED_USERS, lyrical
+from config import lyrical
 
 
 @app.on_message(
     filters.command(["play", "vplay", "playforce", "vplayforce"])
     & filters.group
-    & ~BANNED_USERS
 )
 @PlayWrapper
 async def play_commnd(
@@ -81,7 +80,7 @@ async def play_commnd(
                 await stream(_, mystic, user_id, details, chat_id, user_name, message.chat.id, streamtype="telegram", forceplay=fplay)
             except Exception as e:
                 ex_type = type(e).__name__
-                err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+                err = str(e) if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
                 return await mystic.edit_text(err)
             return await mystic.delete()
         return
@@ -111,7 +110,7 @@ async def play_commnd(
                 await stream(_, mystic, user_id, details, chat_id, user_name, message.chat.id, video=True, streamtype="telegram", forceplay=fplay)
             except Exception as e:
                 ex_type = type(e).__name__
-                err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+                err = str(e) if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
                 return await mystic.edit_text(err)
             return await mystic.delete()
         return
@@ -200,7 +199,7 @@ async def play_commnd(
                 await stream(_, mystic, message.from_user.id, url, chat_id, message.from_user.first_name, message.chat.id, video=video, streamtype="index", forceplay=fplay)
             except Exception as e:
                 ex_type = type(e).__name__
-                err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+                err = str(e) if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
                 return await mystic.edit_text(err)
             return await play_logs(message, streamtype="M3u8 or Index Link")
             
@@ -215,7 +214,6 @@ async def play_commnd(
 
         # ==========================================
         # 🟢 PERSONAL PLAYLIST QUEUE SYSTEM
-        # Checks if the typed text matches a saved folder
         # ==========================================
         user_data = await get_user_playlists(user_id)
         user_playlists = user_data.get("playlists", {})
@@ -225,20 +223,22 @@ async def play_commnd(
             if not tracks:
                 return await mystic.edit_text(f"❌ Your playlist **{query}** is empty.")
             
-            # Extract videoids and convert them back to a list of YouTube URLs 
-            playlist_urls = [f"https://www.youtube.com/watch?v={t['videoid']}" for t in tracks]
+            playlist_vids = [t['videoid'] for t in tracks]
             
             try:
                 await stream(
-                    _, mystic, user_id, playlist_urls, chat_id, user_name, 
+                    _, mystic, user_id, playlist_vids, chat_id, user_name, 
                     message.chat.id, video=video, streamtype="playlist", forceplay=fplay
                 )
             except Exception as e:
                 ex_type = type(e).__name__
-                err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+                err = str(e) if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
                 return await mystic.edit_text(err)
             
-            await mystic.delete()
+            try:
+                await mystic.delete()
+            except:
+                pass
             return await play_logs(message, streamtype=f"Personal Playlist: {query}")
         # ==========================================
             
@@ -248,7 +248,6 @@ async def play_commnd(
         except Exception as ex:
             return await mystic.edit_text(_["play_3"])
             
-        # Add safeguard against NoneType returning from the scraper
         if not details:
             return await mystic.edit_text(_["play_3"])
             
@@ -267,7 +266,7 @@ async def play_commnd(
             await stream(_, mystic, user_id, details, chat_id, user_name, message.chat.id, video=video, streamtype=streamtype, spotify=spotify, forceplay=fplay)
         except Exception as e:
             ex_type = type(e).__name__
-            err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+            err = str(e) if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
             return await mystic.edit_text(err)
         await mystic.delete()
         return await play_logs(message, streamtype=streamtype)
@@ -296,7 +295,7 @@ async def play_commnd(
                 return await play_logs(message, streamtype=f"URL Searched Inline")
 
 
-@app.on_callback_query(filters.regex("MusicStream") & ~BANNED_USERS)
+@app.on_callback_query(filters.regex("MusicStream"))
 @languageCB
 async def play_music(client, CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
@@ -336,12 +335,12 @@ async def play_music(client, CallbackQuery, _):
         await stream(_, mystic, CallbackQuery.from_user.id, details, CallbackQuery.message.chat.id, user_name, CallbackQuery.message.chat.id, video, streamtype="youtube", forceplay=ffplay)
     except Exception as e:
         ex_type = type(e).__name__
-        err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+        err = str(e) if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
         return await mystic.edit_text(err)
     return await mystic.delete()
 
 
-@app.on_callback_query(filters.regex("AnonymousAdmin") & ~BANNED_USERS)
+@app.on_callback_query(filters.regex("AnonymousAdmin"))
 async def anonymous_check(client, CallbackQuery):
     try:
         await CallbackQuery.answer(
@@ -352,7 +351,7 @@ async def anonymous_check(client, CallbackQuery):
         pass
 
 
-@app.on_callback_query(filters.regex("AnonyPlaylists") & ~BANNED_USERS)
+@app.on_callback_query(filters.regex("AnonyPlaylists"))
 @languageCB
 async def play_playlists_command(client, CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
@@ -405,12 +404,12 @@ async def play_playlists_command(client, CallbackQuery, _):
         await stream(_, mystic, user_id, result, CallbackQuery.message.chat.id, user_name, CallbackQuery.message.chat.id, video, streamtype="playlist", spotify=spotify, forceplay=ffplay)
     except Exception as e:
         ex_type = type(e).__name__
-        err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+        err = str(e) if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
         return await mystic.edit_text(err)
     return await mystic.delete()
 
 
-@app.on_callback_query(filters.regex("slider") & ~BANNED_USERS)
+@app.on_callback_query(filters.regex("slider"))
 @languageCB
 async def slider_queries(client, CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
@@ -434,7 +433,6 @@ async def slider_queries(client, CallbackQuery, _):
     try:
         title, duration_min, thumbnail, vidid = await YouTube.slider(query, query_type)
     except:
-        # Fallback if slider search totally fails
         return await CallbackQuery.edit_message_text(_["play_3"])
         
     buttons = slider_markup(_, vidid, user_id, query, query_type, "g", fplay)

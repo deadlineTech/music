@@ -30,4 +30,4 @@ def dirr():
     if CACHE_DIR not in os.listdir():
         os.mkdir(CACHE_DIR)
 
-    LOGGER(__name__).info("✔ Directory structure successfully updated.")
+    LOGGER(__name__).info("Directory structure successfully updated.")

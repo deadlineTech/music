@@ -61,6 +61,9 @@ async def stream(
                     file_path, direct = await YouTube.download(vidid, mystic, video=status, videoid=True)
                 except:
                     raise AssistantErr(_["play_14"])
+                if not file_path:
+                    raise AssistantErr(_["play_14"])
+                    
                 await Anony.join_call(chat_id, original_chat_id, file_path, video=status)
                 await put_queue(
                     chat_id, original_chat_id, file_path if direct else f"vid_{vidid}", title, duration_min, user_name, vidid, user_id, "video" if video else "audio", forceplay=forceplay
@@ -75,6 +78,7 @@ async def stream(
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
+                count += 1
         if count == 0:
             return
         else:
@@ -96,6 +100,9 @@ async def stream(
         try:
             file_path, direct = await YouTube.download(vidid, mystic, videoid=True, video=status)
         except Exception as ex:
+            raise AssistantErr(_["play_14"])
+            
+        if not file_path:
             raise AssistantErr(_["play_14"])
             
         if await is_active_chat(chat_id):

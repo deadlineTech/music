@@ -53,7 +53,7 @@ class Userbot(Client):
         )
 
     async def start(self):
-        LOGGER(__name__).info("Starting assistant clients...")
+        LOGGER(__name__).info("Starting clients...")
 
         async def setup_assistant(client, number):
             try:

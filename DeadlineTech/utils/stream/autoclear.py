@@ -9,7 +9,8 @@ async def auto_clean(popped):
         autoclean.remove(rem)
         count = autoclean.count(rem)
         if count == 0:
-            if "vid_" not in rem or "live_" not in rem or "index_" not in rem:
+            # Fixed: use 'and' instead of 'or' - file should be deleted only if it's NONE of these prefixes
+            if "vid_" not in rem and "live_" not in rem and "index_" not in rem:
                 try:
                     os.remove(rem)
                 except:

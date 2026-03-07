@@ -17,23 +17,43 @@ import config
 from ..logging import LOGGER
 
 
-def install_req(cmd: str) -> Tuple[str, str, int, int]:
-    async def install_requirements():
-        args = shlex.split(cmd)
-        process = await asyncio.create_subprocess_exec(
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+async def install_req_async(cmd: str) -> Tuple[str, str, int, int]:
+    """Async version of install_requirements with timeout."""
+    args = shlex.split(cmd)
+    process = await asyncio.create_subprocess_exec(
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    try:
+        # Add timeout to prevent infinite hang
+        stdout, stderr = await asyncio.wait_for(
+            process.communicate(),
+            timeout=300  # 5 minute timeout for pip install
         )
-        stdout, stderr = await process.communicate()
-        return (
-            stdout.decode("utf-8", "replace").strip(),
-            stderr.decode("utf-8", "replace").strip(),
-            process.returncode,
-            process.pid,
-        )
+    except asyncio.TimeoutError:
+        LOGGER(__name__).error("pip install timeout - killing process")
+        try:
+            process.kill()
+        except:
+            pass
+        return "", "Timeout", -1, process.pid
+        
+    return (
+        stdout.decode("utf-8", "replace").strip(),
+        stderr.decode("utf-8", "replace").strip(),
+        process.returncode,
+        process.pid,
+    )
 
-    return asyncio.get_event_loop().run_until_complete(install_requirements())
+
+def install_req(cmd: str) -> Tuple[str, str, int, int]:
+    """Sync wrapper for backward compatibility."""
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(install_req_async(cmd))
+    finally:
+        loop.close()
 
 
 def git():

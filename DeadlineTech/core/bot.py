@@ -18,14 +18,13 @@ from ..logging import LOGGER
 
 class Music(Client):
     def __init__(self):
-        LOGGER(__name__).info("Initializing DeadlineTech Bot...")
+        LOGGER(__name__).info("Start Music Bot...")
         super().__init__(
             name="DeadlineTech",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
             bot_token=config.BOT_TOKEN,
             in_memory=True,
-            parse_mode=ParseMode.HTML,
             max_concurrent_transmissions=7,
         )
 
@@ -69,7 +68,7 @@ class Music(Client):
             )
             exit()
 
-        LOGGER(__name__).info(f"Bot is online (@{self.username})")
+        LOGGER(__name__).info(f"Bot Started (@{self.username})")
 
     async def stop(self):
         LOGGER(__name__).info("🛑 Stopping DeadlineTech Bot...")

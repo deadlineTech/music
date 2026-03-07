@@ -4,11 +4,6 @@
 # 🔓 Licensed for Public Use — All Rights Reserved © Team DeadlineTech
 # ❤️ Openly built for the community, but proudly protected by the passion of its creators.
 # ==========================================================
-
-# ⚠️ NOTE: uvloop is REMOVED because it's INCOMPATIBLE with pytgcalls/ntgcalls
-# Using uvloop with pytgcalls causes futex wait deadlock - child process hangs infinitely
-# The standard asyncio event loop works perfectly with pytgcalls
-
 import asyncio
 from pyrogram import Client, errors
 from pyrogram.enums import ChatMemberStatus, ParseMode

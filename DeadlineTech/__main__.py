@@ -10,8 +10,13 @@ from pytgcalls.exceptions import NoActiveGroupCall
 import config
 from DeadlineTech import LOGGER, app, userbot
 from DeadlineTech.core.call import Anony
-from DeadlineTech.misc import sudo
+from DeadlineTech.misc import sudo, dbb, heroku
 from DeadlineTech.plugins import ALL_MODULES
+
+# Import background task starters (they don't start tasks at import time anymore)
+from DeadlineTech.plugins.broadcast import start_broadcast_tasks
+from DeadlineTech.plugins.seeker import start_timer_task
+from DeadlineTech.plugins.auto_leave import start_auto_leave_task
 
 async def init():
 
@@ -24,6 +29,11 @@ async def init():
     ):
         LOGGER(__name__).error("Assistant client variables not defined, exiting...")
         exit()
+    
+    # Initialize local DB and Heroku connection
+    dbb()
+    heroku()
+    
     await sudo()
     
     await app.start()
@@ -58,8 +68,16 @@ async def init():
     ])
 
     for all_module in ALL_MODULES:
-        importlib.import_module("DeadlineTech.plugins" + all_module)
+        importlib.import_module("DeadlineTech.plugins." + all_module)  # Fixed: added dot separator
     LOGGER("DeadlineTech.plugins").info("Plugins Imported Successfully...")
+    
+    # Start background tasks AFTER all imports are done and event loop is ready
+    LOGGER("DeadlineTech").info("Starting background tasks...")
+    start_broadcast_tasks()
+    start_timer_task()
+    start_auto_leave_task()
+    LOGGER("DeadlineTech").info("Background tasks started successfully")
+    
     await userbot.start()
     await Anony.start()
     try:

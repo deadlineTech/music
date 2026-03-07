@@ -464,7 +464,10 @@ async def auto_clean():
         except Exception as e:
             LOG.warning(f"AutoClean error: {e}")
 
-# Start Background Tasks
-asyncio.create_task(auto_resume_check())
-asyncio.create_task(auto_clean())
 
+# Tasks will be started from __main__.py after event loop is ready
+# DO NOT create tasks at module level - it causes event loop issues
+def start_broadcast_tasks():
+    """Call this function to start broadcast background tasks after event loop is ready."""
+    asyncio.create_task(auto_resume_check())
+    asyncio.create_task(auto_clean())

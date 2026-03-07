@@ -15,6 +15,7 @@ SUDOERS = filters.user()
 
 HAPP = None
 _boot_ = time.time()
+db = {}  # Initialize db at module level for imports
 
 
 def is_heroku():
@@ -39,6 +40,7 @@ XCB = [
 
 
 def dbb():
+    """Initialize local database (called for logging purposes)."""
     global db
     db = {}
     LOGGER(__name__).info(f"Local DB Created Successfully")
@@ -63,7 +65,7 @@ async def sudo():
 
 def heroku():
     global HAPP
-    if is_heroku:
+    if is_heroku():  # Fixed: added parentheses to call the function
         if config.HEROKU_API_KEY and config.HEROKU_APP_NAME:
             try:
                 Heroku = heroku3.from_key(config.HEROKU_API_KEY)

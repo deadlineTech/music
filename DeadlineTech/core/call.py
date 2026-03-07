@@ -447,38 +447,21 @@ class Call(PyTgCalls):
                 await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
                 return await self.change_stream(client, chat_id)
             
-            from DeadlineTech.utils.thumbnails import gen_thumb
-            try:
-                img = await gen_thumb(videoid)
-                button = stream_markup(_, chat_id)
-                await mystic.delete()
-                run = await app.send_photo(
-                    chat_id=original_chat_id,
-                    photo=img,
-                    caption=_["stream_1"].format(
-                        f"https://t.me/{app.username}?start=info_{videoid}",
-                        title[:23],
-                        check[0]["dur"],
-                        user,
-                    ),
-                    reply_markup=InlineKeyboardMarkup(button),
-                )
-            except Exception as e:
-                LOGGER(__name__).warning(f"Failed to send thumbnail for {chat_id}, falling back to text: {e}")
-                button = stream_markup(_, chat_id)
-                await mystic.delete()
-                run = await app.send_message(
-                    chat_id=original_chat_id,
-                    text=_["stream_1"].format(
-                        f"https://t.me/{app.username}?start=info_{videoid}",
-                        title[:23],
-                        check[0]["dur"],
-                        user,
-                    ),
-                    reply_markup=InlineKeyboardMarkup(button),
-                    disable_web_page_preview=True
-                )
-                
+            # Send text message instead of photo (thumbnail removed)
+            button = stream_markup(_, chat_id)
+            await mystic.delete()
+            run = await app.send_message(
+                chat_id=original_chat_id,
+                text=_["stream_1"].format(
+                    f"https://t.me/{app.username}?start=info_{videoid}",
+                    title[:23],
+                    check[0]["dur"],
+                    user,
+                ),
+                reply_markup=InlineKeyboardMarkup(button),
+                disable_web_page_preview=True
+            )
+            
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"
 

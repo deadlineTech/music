@@ -121,5 +121,9 @@ async def auto_leave_task() -> None:
                 
         LOG.info("Cleanup cycle completed.")
 
-# Initialize the background task
-asyncio.create_task(auto_leave_task())
+
+# Task will be started from __main__.py after event loop is ready
+# DO NOT create task at module level - it causes event loop issues
+def start_auto_leave_task():
+    """Call this function to start the auto-leave task after event loop is ready."""
+    asyncio.create_task(auto_leave_task())

@@ -22,13 +22,10 @@ rel = {}
 @language
 async def reload_admin_cache(client, message: Message, _):
     try:
-        if message.chat.id not in rel:
-            rel[message.chat.id] = {}
-        else:
-            saved = rel[message.chat.id]
-            if saved > time.time():
-                left = get_readable_time((int(saved) - int(time.time())))
-                return await message.reply_text(_["reload_1"].format(left))
+        saved = rel.get(message.chat.id)
+        if saved and saved > time.time():
+            left = get_readable_time((int(saved) - int(time.time())))
+            return await message.reply_text(_["reload_1"].format(left))
         adminlist[message.chat.id] = []
         async for user in app.get_chat_members(
             message.chat.id, filter=ChatMembersFilter.ADMINISTRATORS

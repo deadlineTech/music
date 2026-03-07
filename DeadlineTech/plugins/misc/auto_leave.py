@@ -10,7 +10,6 @@ import config
 from DeadlineTech.utils.database import get_client, is_active_chat
 from DeadlineTech.logging import LOGGER
 
-# --- Configuration & Constants ---
 LOG = LOGGER(__name__)
 
 # Chats that should never be left (e.g., Logger Group, Support Chat)
@@ -18,7 +17,7 @@ EXCLUDED_CHAT_IDS: Set[int] = {
     config.LOGGER_ID, -1001476736723, -1001726765522,  # Fallback if not set
 }
 
-MAX_LEAVES_PER_RUN = 80
+MAX_LEAVES_PER_RUN = 90
 TIMEZONE = pytz.timezone("Asia/Kolkata")
 TARGET_HOUR = 4
 TARGET_MINUTE = 35
@@ -121,9 +120,6 @@ async def auto_leave_task() -> None:
                 
         LOG.info("Cleanup cycle completed.")
 
-
-# Task will be started from __main__.py after event loop is ready
-# DO NOT create task at module level - it causes event loop issues
 def start_auto_leave_task():
     """Call this function to start the auto-leave task after event loop is ready."""
     asyncio.create_task(auto_leave_task())

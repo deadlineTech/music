@@ -294,10 +294,22 @@ async def yt_dlp_download_video(link: str, format_id: str = None) -> Optional[st
     try:
         LOGGER(__name__).info(f"Downloading VIDEO via yt-dlp: {vid} (Cookies: {os.path.basename(cookie_file)})")
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, _run_ytdlp, link, str(out_path), cookie_file, format_id)
+        # Add timeout to prevent infinite hang - 5 minute timeout for video downloads
+        await asyncio.wait_for(
+            loop.run_in_executor(None, _run_ytdlp, link, str(out_path), cookie_file, format_id),
+            timeout=300  # 5 minute timeout
+        )
         
         if out_path.exists() and out_path.stat().st_size > 0:
             return str(out_path)
+    except asyncio.TimeoutError:
+        LOGGER(__name__).error(f"yt-dlp Video Download TIMEOUT (5 min exceeded) for: {vid}")
+        # Clean up partial file
+        try:
+            if out_path.exists():
+                out_path.unlink()
+        except:
+            pass
     except Exception as e:
         LOGGER(__name__).error(f"yt-dlp Video Download Failed (Skipping): {e}")
     
@@ -391,9 +403,20 @@ class YouTubeAPI:
             proc = await asyncio.create_subprocess_exec(
                 *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
-            stdout, _ = await proc.communicate()
+            # Add timeout to prevent infinite wait
+            stdout, _ = await asyncio.wait_for(
+                proc.communicate(),
+                timeout=60  # 1 minute timeout for playlist fetch
+            )
             if stdout: return [x for x in stdout.decode().split("\n") if x]
-        except: pass
+        except asyncio.TimeoutError:
+            LOGGER(__name__).warning(f"yt-dlp playlist fetch timeout for {link}")
+            try:
+                proc.kill()
+            except:
+                pass
+        except Exception as e:
+            LOGGER(__name__).error(f"yt-dlp error: {e}")
         return []
 
     async def track(self, link: str, videoid: Union[bool, str] = None):
@@ -414,6 +437,21 @@ class YouTubeAPI:
             
         return None, None
 
+    def _run_ytdlp_formats(link: str, cookie_file: str):
+        """Synchronous helper to extract format info."""
+        ytdl_opts = {"quiet": True, "cookiefile": cookie_file}
+        out = []
+        with yt_dlp.YoutubeDL(ytdl_opts) as ydl:
+            r = ydl.extract_info(link, download=False)
+            for f in r.get("formats", []):
+                if "dash" in str(f.get("format")).lower(): continue
+                out.append({
+                    "format": f.get("format"), "filesize": f.get("filesize"),
+                    "format_id": f.get("format_id"), "ext": f.get("ext"),
+                    "format_note": f.get("format_note"), "yturl": link
+                })
+        return out
+
     async def formats(self, link: str, videoid: Union[bool, str] = None):
         if videoid: link = self.base + link
         if not is_safe_url(link): return [], link
@@ -421,20 +459,20 @@ class YouTubeAPI:
         cookie_file = cookie_txt_file()
         if not cookie_file: return [], link
         
-        ytdl_opts = {"quiet": True, "cookiefile": cookie_file}
-        out = []
         try:
-            with yt_dlp.YoutubeDL(ytdl_opts) as ydl:
-                r = ydl.extract_info(link, download=False)
-                for f in r.get("formats", []):
-                    if "dash" in str(f.get("format")).lower(): continue
-                    out.append({
-                        "format": f.get("format"), "filesize": f.get("filesize"),
-                        "format_id": f.get("format_id"), "ext": f.get("ext"),
-                        "format_note": f.get("format_note"), "yturl": link
-                    })
-        except: pass
-        return out, link
+            # Run in executor with timeout to prevent blocking
+            loop = asyncio.get_event_loop()
+            out = await asyncio.wait_for(
+                loop.run_in_executor(None, self._run_ytdlp_formats, link, cookie_file),
+                timeout=60  # 1 minute timeout for format extraction
+            )
+            return out, link
+        except asyncio.TimeoutError:
+            LOGGER(__name__).warning(f"yt-dlp formats extraction timeout for {link}")
+            return [], link
+        except Exception as e:
+            LOGGER(__name__).error(f"yt-dlp formats error: {e}")
+            return [], link
 
     async def slider(self, link: str, query_type: int, videoid: Union[bool, str] = None):
         if videoid: link = self.base + link

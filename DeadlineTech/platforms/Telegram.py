@@ -1,28 +1,9 @@
-
-
 # ==========================================================
 # 🎧 Public Open-Source VC Player Music Bot (Cookies Based)
 # 🛠️ Maintained by Team DeadlineTech | Lead Developer: @Its_damiann
 # 🔓 Licensed for Public Use — All Rights Reserved © Team DeadlineTech
-#
-# This file is part of a publicly available and open-source Telegram music bot
-# developed by Team DeadlineTech. It offers high-quality streaming in Telegram voice
-# chats using YouTube as a source, supported by session-based assistant accounts and
-# YouTube cookie integration for improved access and performance.
-#
-# 💡 This source code is released for educational and community purposes. You're free
-# to study, modify, and deploy it under fair and respectful usage. However, any misuse,
-# removal of credits, or false ownership claims will be considered a violation of our
-# community standards and may lead to denial of support or blacklisting.
-#
-# 🔗 Looking for powerful performance with stable APIs? Get access to the official
-# premium API service: https://DeadlineTech.site
-#
 # ❤️ Openly built for the community, but proudly protected by the passion of its creators.
 # ==========================================================
-
-
-
 
 import asyncio
 import os
@@ -39,6 +20,7 @@ from DeadlineTech.utils.formatters import (
     get_readable_time,
     seconds_to_min,
 )
+from strings import get_string
 
 
 class TeleAPI:
@@ -68,23 +50,26 @@ class TeleAPI:
             file_name = "ᴛᴇʟᴇɢʀᴀᴍ ᴀᴜᴅɪᴏ" if audio else "ᴛᴇʟᴇɢʀᴀᴍ ᴠɪᴅᴇᴏ"
         return file_name
 
-    async def get_duration(self, file):
+    async def get_duration(self, file, file_path=None):
+        """Get duration from file object or file path."""
         try:
             dur = seconds_to_min(file.duration)
         except:
-            dur = "Unknown"
-        return dur
-
-    async def get_duration(self, filex, file_path):
-        try:
-            dur = seconds_to_min(filex.duration)
-        except:
-            try:
-                dur = await asyncio.get_event_loop().run_in_executor(
-                    None, check_duration, file_path
-                )
-                dur = seconds_to_min(dur)
-            except:
+            if file_path:
+                try:
+                    # Add timeout to prevent infinite hang
+                    dur = await asyncio.wait_for(
+                        asyncio.get_event_loop().run_in_executor(
+                            None, check_duration, file_path
+                        ),
+                        timeout=30  # 30 second timeout
+                    )
+                    dur = seconds_to_min(dur)
+                except asyncio.TimeoutError:
+                    return "Unknown"
+                except:
+                    return "Unknown"
+            else:
                 return "Unknown"
         return dur
 

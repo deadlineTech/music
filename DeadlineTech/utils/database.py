@@ -580,8 +580,6 @@ async def remove_sudo(user_id: int) -> bool:
     )
     return True
 
-# --- Advanced Playlist Logic ---
-
 async def get_user_playlists(user_id: int) -> dict:
     """Fetch user's saved playlists and the name of their active folder."""
     user_data = await playlistdb.find_one({"user_id": user_id})
@@ -607,7 +605,6 @@ async def add_to_active_playlist(user_id: int, videoid: str, title: str) -> str:
     playlists = data["playlists"]
     active = data["active"]
 
-    # Logic: If no folders exist, create default 'MusicXXXX' and set as active
     if not playlists:
         active = f"Music{random.randint(1000, 9999)}"
         playlists[active] = []

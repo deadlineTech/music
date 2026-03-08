@@ -209,15 +209,14 @@ class Call(PyTgCalls):
                         "-i", file_path,
                         "-filter:v", f"setpts={vs}*PTS",
                         "-filter:a", f"atempo={speed}",
-                        "-y",  # Overwrite output file
+                        "-y",
                         out,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
                     )
-                    # Add timeout to prevent infinite wait
                     stdout, stderr = await asyncio.wait_for(
                         proc.communicate(), 
-                        timeout=300  # 5 minute timeout
+                        timeout=300
                     )
                     if proc.returncode != 0:
                         LOGGER(__name__).error(f"FFmpeg error: {stderr.decode() if stderr else 'Unknown'}")
@@ -336,6 +335,17 @@ class Call(PyTgCalls):
     async def change_stream(self, client: PyTgCalls, chat_id: int):
         LOGGER(__name__).info(f"Stream ended. Processing track change for chat: {chat_id}")
         check = db.get(chat_id)
+        
+        # FIX: Handle case where check is None or empty
+        if not check:
+            LOGGER(__name__).warning(f"No queue data found for {chat_id}, clearing and leaving")
+            try:
+                await _clear_(chat_id)
+                await client.leave_call(chat_id, close=False)
+            except Exception as e:
+                LOGGER(__name__).warning(f"Error while clearing for {chat_id}: {e}")
+            return
+            
         popped = None
         loop = await get_loop(chat_id)
         try:
@@ -349,16 +359,6 @@ class Call(PyTgCalls):
                 LOGGER(__name__).info(f"Queue empty. Leaving voice call in chat: {chat_id}")
                 await _clear_(chat_id)
                 await client.leave_call(chat_id, close=False)
-                
-                try:
-                    await app.send_message(
-                        chat_id=popped["chat_id"],
-                        text="No more songs in queue. Use /play to continue listening.",
-                        disable_web_page_preview=True
-                    )
-                except Exception as e:
-                    LOGGER(__name__).warning(f"Could not send queue empty message in {chat_id}: {e}")
-                
                 return
         except Exception as e:
             LOGGER(__name__).error(f"Error managing queue during track change in {chat_id}: {e}")
@@ -368,6 +368,15 @@ class Call(PyTgCalls):
             except Exception:
                 return
                 
+        if not check or len(check) == 0:
+            LOGGER(__name__).warning(f"Queue became empty for {chat_id}")
+            await _clear_(chat_id)
+            try:
+                await client.leave_call(chat_id, close=False)
+            except:
+                pass
+            return
+            
         queued = check[0]["file"]
         language = await get_lang(chat_id)
         _ = get_string(language)
@@ -446,6 +455,7 @@ class Call(PyTgCalls):
                 await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
                 return await self.change_stream(client, chat_id)
             
+            # Send text message (thumbnail removed)
             button = stream_markup(_, chat_id)
             await mystic.delete()
             run = await app.send_message(

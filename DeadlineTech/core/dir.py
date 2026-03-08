@@ -1,4 +1,3 @@
-
 # ==========================================================
 # 🎧 Public Open-Source VC Player Music Bot (Cookies Based)
 # 🛠️ Maintained by Team DeadlineTech | Lead Developer: @Its_damiann
@@ -11,7 +10,6 @@ import os
 
 from ..logging import LOGGER
 
-# Define the directories as global variables so other files can import them
 DOWNLOAD_DIR = "downloads"
 CACHE_DIR = "cache"
 

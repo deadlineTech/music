@@ -9,11 +9,9 @@ from pathlib import Path
 from urllib.parse import urlparse, unquote
 from typing import Union, Optional, Dict, Any, Tuple
 
-# Pyrogram
 from pyrogram.types import Message
 from pyrogram.enums import MessageEntityType
 
-# Search & Utils
 from youtubesearchpython.__future__ import VideosSearch
 from DeadlineTech import app as TG_APP
 from DeadlineTech.utils.database import is_on_off
@@ -21,11 +19,9 @@ from DeadlineTech.utils.formatters import time_to_seconds
 from DeadlineTech.logging import LOGGER
 import config
 
-# === Configuration & Constants ===
 YOUTUBE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{11}$")
 CHUNK_SIZE = 1024 * 1024
 
-# Security Constants
 DANGEROUS_CHARS = [
     ";", "|", "$", "`", "\n", "\r", 
     "&", "(", ")", "<", ">", "{", "}", 
@@ -36,7 +32,6 @@ ALLOWED_DOMAINS = {
     "youtu.be", "music.youtube.com"
 }
 
-# Polling & Request Settings
 JOB_POLL_ATTEMPTS = 15     
 JOB_POLL_INTERVAL = 2.0    
 JOB_POLL_BACKOFF = 1.2     
@@ -48,7 +43,6 @@ NO_CANDIDATE_WAIT = 4
 CDN_RETRIES = 5
 CDN_RETRY_DELAY = 2
 
-# === Security Helpers ===
 
 def is_safe_url(text: str) -> bool:
     if not text: return False
@@ -95,8 +89,6 @@ def cookie_txt_file():
     
     LOGGER(__name__).error(f"Cookie file not found at: {cookie_path}")
     return None
-
-# === API Logic (Audio Only) ===
 
 _session: Optional[aiohttp.ClientSession] = None
 _session_lock = asyncio.Lock()
@@ -262,8 +254,6 @@ async def v2_download_process(link: str, video: bool) -> Optional[str]:
     
     return None
 
-# === YT-DLP Video Downloader System ===
-
 def _run_ytdlp(link: str, out_path: str, cookie_file: str, format_id: str = None):
     # Synchronous function mapped into a thread pool
     ydl_opts = {
@@ -297,7 +287,7 @@ async def yt_dlp_download_video(link: str, format_id: str = None) -> Optional[st
         # Add timeout to prevent infinite hang - 5 minute timeout for video downloads
         await asyncio.wait_for(
             loop.run_in_executor(None, _run_ytdlp, link, str(out_path), cookie_file, format_id),
-            timeout=300  # 5 minute timeout
+            timeout=300 
         )
         
         if out_path.exists() and out_path.stat().st_size > 0:
@@ -315,7 +305,6 @@ async def yt_dlp_download_video(link: str, format_id: str = None) -> Optional[st
     
     return None
 
-# === MAIN CLASS ===
 
 class YouTubeAPI:
     def __init__(self):
@@ -375,7 +364,6 @@ class YouTubeAPI:
         return "00:00"
 
     async def thumbnail(self, link: str, videoid: Union[bool, str] = None):
-        # Disabled as per request, returning empty string
         return ""
 
     async def video(self, link: str, videoid: Union[bool, str] = None):
@@ -406,7 +394,7 @@ class YouTubeAPI:
             # Add timeout to prevent infinite wait
             stdout, _ = await asyncio.wait_for(
                 proc.communicate(),
-                timeout=60  # 1 minute timeout for playlist fetch
+                timeout=60 
             )
             if stdout: return [x for x in stdout.decode().split("\n") if x]
         except asyncio.TimeoutError:
@@ -464,7 +452,7 @@ class YouTubeAPI:
             loop = asyncio.get_event_loop()
             out = await asyncio.wait_for(
                 loop.run_in_executor(None, self._run_ytdlp_formats, link, cookie_file),
-                timeout=60  # 1 minute timeout for format extraction
+                timeout=60
             )
             return out, link
         except asyncio.TimeoutError:
@@ -504,7 +492,6 @@ class YouTubeAPI:
 
         is_vid = True if (video or songvideo) else False
         
-        # Audio vs Video Request Routing
         if is_vid:
             path = await yt_dlp_download_video(link, format_id=format_id)
         else:

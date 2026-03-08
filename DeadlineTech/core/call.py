@@ -350,7 +350,6 @@ class Call(PyTgCalls):
                 await _clear_(chat_id)
                 await client.leave_call(chat_id, close=False)
                 
-                # 🟢 NEW: Send a nice message when the queue is completely empty
                 try:
                     await app.send_message(
                         chat_id=popped["chat_id"],
@@ -447,7 +446,6 @@ class Call(PyTgCalls):
                 await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
                 return await self.change_stream(client, chat_id)
             
-            # Send text message instead of photo (thumbnail removed)
             button = stream_markup(_, chat_id)
             await mystic.delete()
             run = await app.send_message(

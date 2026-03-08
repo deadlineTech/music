@@ -51,7 +51,7 @@ async def _clear_(chat_id: int):
 class Call(PyTgCalls):
     def __init__(self):
         PyTgCallsSession.notice_displayed = True
-        LOGGER(__name__).info("Initializing PyTgCalls Assistant Clients...")
+        LOGGER(__name__).info("PyTgCalls Clients...")
 
         self.userbot1 = Client(
             name="DeadlineXAss1",
@@ -217,7 +217,7 @@ class Call(PyTgCalls):
                     # Add timeout to prevent infinite wait
                     stdout, stderr = await asyncio.wait_for(
                         proc.communicate(), 
-                        timeout=300  # 5 minute timeout
+                        timeout=300 
                     )
                     if proc.returncode != 0:
                         LOGGER(__name__).error(f"FFmpeg error: {stderr.decode() if stderr else 'Unknown'}")
@@ -350,7 +350,6 @@ class Call(PyTgCalls):
                 await _clear_(chat_id)
                 await client.leave_call(chat_id, close=False)
                 
-                # 🟢 NEW: Send a nice message when the queue is completely empty
                 try:
                     await app.send_message(
                         chat_id=popped["chat_id"],

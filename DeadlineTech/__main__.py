@@ -13,10 +13,9 @@ from DeadlineTech.core.call import Anony
 from DeadlineTech.misc import sudo, dbb, heroku
 from DeadlineTech.plugins import ALL_MODULES
 
-# Import background task starters (they don't start tasks at import time anymore)
-from DeadlineTech.plugins.broadcast import start_broadcast_tasks
-from DeadlineTech.plugins.seeker import start_timer_task
-from DeadlineTech.plugins.auto_leave import start_auto_leave_task
+from DeadlineTech.plugins.misc.broadcast import start_broadcast_tasks
+from DeadlineTech.plugins.misc.seeker import start_timer_task
+from DeadlineTech.plugins.misc.auto_leave import start_auto_leave_task
 
 async def init():
 
@@ -30,7 +29,6 @@ async def init():
         LOGGER(__name__).error("Assistant client variables not defined, exiting...")
         exit()
     
-    # Initialize local DB and Heroku connection
     dbb()
     heroku()
     
@@ -38,7 +36,6 @@ async def init():
     
     await app.start()
 
-    # Updated commands list: Removed clone/music, added playlist commands
     await app.set_bot_commands([
         BotCommand("start", "Sᴛᴀʀᴛ's Tʜᴇ Bᴏᴛ"),
         BotCommand("ping", "Cʜᴇᴄᴋ ɪғ ʙᴏᴛ ɪs ᴀʟɪᴠᴇ"),

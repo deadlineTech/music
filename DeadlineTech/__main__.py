@@ -68,10 +68,9 @@ async def init():
     ])
 
     for all_module in ALL_MODULES:
-        importlib.import_module("DeadlineTech.plugins." + all_module)  # Fixed: added dot separator
+        importlib.import_module("DeadlineTech.plugins." + all_module)
     LOGGER("DeadlineTech.plugins").info("Plugins Imported Successfully...")
     
-    # Start background tasks AFTER all imports are done and event loop is ready
     LOGGER("DeadlineTech").info("Starting background tasks...")
     start_broadcast_tasks()
     start_timer_task()
